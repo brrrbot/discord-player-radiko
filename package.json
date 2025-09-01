@@ -1,26 +1,26 @@
 {
   "name": "discord-player-radiko",
   "version": "1.0.0",
-  "description": "",
+  "description": "Radiko extractor for discord-player (stream Japanese radio stations)",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
     "prepublishOnly": "npm run build"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": ["discord-player", "radiko", "musicbot", "extractor", "plugin"],
+  "author": "brrrbot",
   "license": "Apache-2.0",
   "type": "commonjs",
+  "peerDependencies": {
+    "discord-player": "^7.1.0",
+    "yt-dlp-wrap": "^2.3.12"
+  },
   "devDependencies": {
     "@types/node": "^24.3.0",
     "discord.js": "^14.22.1",
     "eris": "^0.18.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2"
-  },
-  "dependencies": {
-    "discord-player": "^7.1.0",
-    "yt-dlp-wrap": "^2.3.12"
   }
 }
