@@ -1,4 +1,4 @@
-import { BaseExtractor, ExtractorExecutionContext, ExtractorInfo, ExtractorSearchContext, ExtractorStreamable, GuildQueueHistory, SearchQueryType, Track } from "discord-player";
+import { BaseExtractor, ExtractorExecutionContext, ExtractorInfo, ExtractorSearchContext, ExtractorStreamable, GuildQueueHistory, QueryType, SearchQueryType, Track } from "discord-player";
 import { Readable } from "node:stream";
 import YTDlpWrap from "yt-dlp-wrap";
 
@@ -153,7 +153,7 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
 
     // This method is called when discord-player wants metadata, return false to direct to another extractor
     async validate(query: string, type?: SearchQueryType | null): Promise<boolean> {
-        if (type && type !== "AUTO") return false;
+        if (type && type !== QueryType.AUTO) return false;
         return /radiko\.jp/.test(query);
     }
 
