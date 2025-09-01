@@ -117,11 +117,11 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
         }
 
         if (mode === "stream") {
+            args.push("-f", this.options.format ?? format.BESTAUDIO);
             args.push("-o", "-")
         }
 
         // Add user options if provided
-        if (this.options?.format) args.push("-f", this.options.format);
         if (this.options?.device) args.push("--extractor-args", `rajiko:device=${this.options.device}`);
         if (this.options?.key_station_only) args.push("--extractor-args", "rajiko:key_station_only");
         if (this.options?.no_as_live_chunks) args.push("--extractor-args", "rajiko:no_as_live_chunks");
@@ -162,7 +162,8 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
         try {
             const args = this.buildArgs(query, "info");
             const result = await this.ytdlp.execPromise(args);
-            const data = JSON.parse(result);
+            const firstJson = result.split("\n")[0];
+            const data = JSON.parse(firstJson);
 
             const track: Track = new Track(this.context.player, {
                 title: data.title ?? "Unknown Stream",
@@ -171,10 +172,19 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
                 duration: data.is_live ? 0 : (data.duration ?? 0),
                 live: data.is_live ?? true,
                 thumbnail: data.thumbnail ?? null,
-                requestedBy: context.requestedBy ?? "Unknown",
+                requestedBy: typeof context.requestedBy === "string" ? null : context.requestedBy,
                 description: data.description ?? "",
                 engine: this.identifier,
-                metadata: { raw: data },
+                metadata: {
+                    raw: {
+                        title: data.title,
+                        url: data.url,
+                        uploader: data.uploader,
+                        duration: data.duration,
+                        thumbnail: data.thumbnail,
+                        is_live: data.is_live,
+                    },
+                },
             });
 
             return {
