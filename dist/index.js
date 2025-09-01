@@ -100,7 +100,7 @@ class RadikoExtractor extends discord_player_1.BaseExtractor {
     }
     // This method is called when discord-player wants metadata, return false to direct to another extractor
     async validate(query, type) {
-        if (type && type !== "AUTO")
+        if (type && type !== discord_player_1.QueryType.AUTO)
             return false;
         return /radiko\.jp/.test(query);
     }
