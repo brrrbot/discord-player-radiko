@@ -65,11 +65,10 @@ class RadikoExtractor extends discord_player_1.BaseExtractor {
             args.push(url, "-J", "-N", "30", "--embed-metadata", "--embed-thumbnail", "-o", "%(title)s %(timestamp+32400>%Y-%m-%d_%H%M)s [%(id)s].%(ext)s");
         }
         if (mode === "stream") {
+            args.push("-f", (_a = this.options.format) !== null && _a !== void 0 ? _a : format.BESTAUDIO);
             args.push("-o", "-");
         }
         // Add user options if provided
-        if ((_a = this.options) === null || _a === void 0 ? void 0 : _a.format)
-            args.push("-f", this.options.format);
         if ((_b = this.options) === null || _b === void 0 ? void 0 : _b.device)
             args.push("--extractor-args", `rajiko:device=${this.options.device}`);
         if ((_c = this.options) === null || _c === void 0 ? void 0 : _c.key_station_only)
@@ -111,18 +110,28 @@ class RadikoExtractor extends discord_player_1.BaseExtractor {
         try {
             const args = this.buildArgs(query, "info");
             const result = await this.ytdlp.execPromise(args);
-            const data = JSON.parse(result);
+            const firstJson = result.split("\n")[0];
+            const data = JSON.parse(firstJson);
             const track = new discord_player_1.Track(this.context.player, {
                 title: (_a = data.title) !== null && _a !== void 0 ? _a : "Unknown Stream",
                 url: (_b = data.url) !== null && _b !== void 0 ? _b : query,
                 author: (_c = data.uploader) !== null && _c !== void 0 ? _c : "Radiko",
-                duration: data.is_live ? 0 : ((_d = data.duration) !== null && _d !== void 0 ? _d : 0),
+                duration: data.is_live ? 0 : ((_d = data.duration) !== null && _d !== void 0 ? _d : 0).toString(),
                 live: (_e = data.is_live) !== null && _e !== void 0 ? _e : true,
                 thumbnail: (_f = data.thumbnail) !== null && _f !== void 0 ? _f : null,
                 requestedBy: typeof context.requestedBy === "string" ? null : context.requestedBy,
                 description: (_g = data.description) !== null && _g !== void 0 ? _g : "",
                 engine: this.identifier,
-                metadata: { raw: data },
+                metadata: {
+                    raw: {
+                        title: data.title,
+                        url: data.url,
+                        uploader: data.uploader,
+                        duration: data.duration,
+                        thumbnail: data.thumbnail,
+                        is_live: data.is_live,
+                    },
+                },
             });
             return {
                 playlist: null,

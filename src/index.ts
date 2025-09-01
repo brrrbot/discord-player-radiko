@@ -169,7 +169,7 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
                 title: data.title ?? "Unknown Stream",
                 url: data.url ?? query,
                 author: data.uploader ?? "Radiko",
-                duration: data.is_live ? 0 : (data.duration ?? 0),
+                duration: data.is_live ? 0 : (data.duration ?? 0).toString(),
                 live: data.is_live ?? true,
                 thumbnail: data.thumbnail ?? null,
                 requestedBy: typeof context.requestedBy === "string" ? null : context.requestedBy,
