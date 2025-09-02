@@ -38,7 +38,7 @@ declare enum device {
     EXTERNAL = "xExternalWebStations"
 }
 /** Optional configs for RadikoExtractors */
-export interface RadikoExtractorOptions {
+interface RadikoExtractorOptions {
     /**
      * Option to use pip install yt-dlp & yt-dlp-rajiko.
      * If omitted, use yt-dlp.exe
@@ -83,6 +83,8 @@ export declare class RadikoExtractor extends BaseExtractor<RadikoExtractorOption
     private activeStream;
     constructor(context: ExtractorExecutionContext, options?: RadikoExtractorOptions);
     private buildArgs;
+    private buildTracksFromYtDlp;
+    private findPersonId;
     createBridgeQuery: (track: Track) => string;
     activate(): Promise<void>;
     deactivate(): Promise<void>;
