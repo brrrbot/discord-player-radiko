@@ -154,14 +154,20 @@ class RadikoExtractor extends discord_player_1.BaseExtractor {
     }
     // This method is called when discord-player wants a search result
     async handle(query, context) {
+        if (!context.protocol)
+            context.protocol = "radikoSearchByKeyWords";
         try {
             switch (context.protocol) {
                 case "radikoSearchByKeyWords": {
-                    const url = `https://radiko.jp/#!/search/live?key=${encodeURIComponent(query)}&filter=past`;
+                    const url = `https://radiko.jp/#!/search/live?key=${encodeURIComponent(query)}`;
                     const args = this.buildArgs(url, "info");
                     const result = await this.ytdlp.execPromise(args);
-                    const firstJson = result.split("\n")[0]; // yt-dlp sometimes outputs multiple JSON lines
-                    const data = JSON.parse(firstJson);
+                    const playlistJsonLine = result
+                        .split("\n")
+                        .find(line => line.includes('"_type": "playlist"'));
+                    if (!playlistJsonLine)
+                        return { playlist: null, tracks: [] };
+                    const data = JSON.parse(playlistJsonLine);
                     const tracks = this.buildTracksFromYtDlp(data, context.requestedBy);
                     return { playlist: null, tracks };
                 }
@@ -172,8 +178,12 @@ class RadikoExtractor extends discord_player_1.BaseExtractor {
                     const url = `https://radiko.jp/persons/${personId}`;
                     const args = this.buildArgs(url, "info");
                     const result = await this.ytdlp.execPromise(args);
-                    const firstJson = result.split("\n")[0];
-                    const data = JSON.parse(firstJson);
+                    const playlistJsonLine = result
+                        .split("\n")
+                        .find(line => line.includes('"_type": "playlist"'));
+                    if (!playlistJsonLine)
+                        return { playlist: null, tracks: [] };
+                    const data = JSON.parse(playlistJsonLine);
                     const tracks = this.buildTracksFromYtDlp(data, context.requestedBy);
                     return { playlist: null, tracks };
                 }
