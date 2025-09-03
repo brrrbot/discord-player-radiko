@@ -153,7 +153,7 @@ class RadikoExtractor extends discord_player_1.BaseExtractor {
     }
     // This method is called when discord-player wants a search result
     async handle(query, context) {
-        var _a, _b, _c, _d, _e;
+        var _a, _b, _c, _d, _e, _f;
         console.log("handle() function start");
         if (!context.protocol)
             context.protocol = "radikoSearchByKeyWords";
@@ -163,18 +163,18 @@ class RadikoExtractor extends discord_player_1.BaseExtractor {
                     const url = `https://radiko.jp/#!/search/live?key=${encodeURIComponent(query)}&filter=past`;
                     const args = this.buildArgs(url, "info");
                     const result = await this.ytdlp.execPromise(args);
-                    console.log(result);
+                    console.log("Result: ", result);
                     const firstJson = result.split("\n")[0];
                     const data = JSON.parse(firstJson);
-                    console.log(data);
+                    console.log("Data:", data);
                     const track = new discord_player_1.Track(this.context.player, {
                         title: (_a = data.title) !== null && _a !== void 0 ? _a : "Unknown Title",
-                        url: data.url,
-                        author: (_b = data.uploader) !== null && _b !== void 0 ? _b : "Radiko",
-                        duration: data.is_live ? "Currently Live" : ((_c = data.duration) !== null && _c !== void 0 ? _c : 0).toString(),
-                        thumbnail: (_d = data.thumbnail) !== null && _d !== void 0 ? _d : null,
+                        url: (_b = data.webpage_url) !== null && _b !== void 0 ? _b : url,
+                        author: (_c = data.uploader) !== null && _c !== void 0 ? _c : "Radiko",
+                        duration: data.is_live ? "Currently Live" : ((_d = data.duration) !== null && _d !== void 0 ? _d : 0).toString(),
+                        thumbnail: (_e = data.thumbnail) !== null && _e !== void 0 ? _e : null,
                         requestedBy: typeof context.requestedBy === "string" ? null : context.requestedBy,
-                        description: (_e = data.description) !== null && _e !== void 0 ? _e : "",
+                        description: (_f = data.description) !== null && _f !== void 0 ? _f : "",
                         engine: this.identifier,
                         metadata: {
                             raw: {

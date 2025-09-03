@@ -211,13 +211,13 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
                     const url = `https://radiko.jp/#!/search/live?key=${encodeURIComponent(query)}&filter=past`;
                     const args = this.buildArgs(url, "info");
                     const result = await this.ytdlp.execPromise(args);
-                    console.log(result);
+                    console.log("Result: ",result);
                     const firstJson = result.split("\n")[0];
                     const data = JSON.parse(firstJson);
-                    console.log(data)
+                    console.log("Data:",data)
                     const track: Track = new Track(this.context.player, {
                         title: data.title ?? "Unknown Title",
-                        url: data.url,
+                        url: data.webpage_url ?? url,
                         author: data.uploader ?? "Radiko",
                         duration: data.is_live ? "Currently Live" : (data.duration ?? 0).toString(),
                         thumbnail: data.thumbnail ?? null,
