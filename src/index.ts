@@ -126,17 +126,27 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
         return args;
     }
 
-    private buildTracksFromYtDlp(json: any, requestedBy: ExtractorSearchContext["requestedBy"]): Track[] {
+    private buildTracksFromYtDlp(json: any, requestedBy: ExtractorSearchContext["requestedBy"], url: string): Track[] {
         const entries = json.entries ?? [json];
-        return entries.map((item: any) => new Track(this.context.player, {
-            title: item.title ?? "Unknown Title",
-            url: item.url ?? item.webpage_url ?? "",
-            author: item.uploader ?? "Radiko",
-            duration: item.is_live ? "Currently Live" : (item.duration ?? 0).toString(),
-            thumbnail: item.thumbnail ?? null,
+        return entries.map((data: any) => new Track(this.context.player, {
+            title: data.title ?? "Unknown Title",
+            url: url,
+            author: data.uploader ?? "Radiko",
+            duration: data.is_live ? "Currently Live" : (data.duration ?? 0).toString(),
+            thumbnail: data.thumbnail ?? null,
             requestedBy: typeof requestedBy === "string" ? null : requestedBy,
-            description: item.description ?? "",
+            description: data.description ?? "",
             engine: this.identifier,
+            metadata: {
+                    raw: {
+                        title: data.title,
+                        url: data.url,
+                        uploader: data.uploader,
+                        duration: data.duration,
+                        thumbnail: data.thumbnail,
+                        is_live: data.is_live,
+                    },
+                },
         }));
     }
 
@@ -199,7 +209,7 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
                         .filter(line => line.trim())
                         .flatMap(line => {
                             try {
-                                return this.buildTracksFromYtDlp(JSON.parse(line), context.requestedBy);
+                                return this.buildTracksFromYtDlp(JSON.parse(line), context.requestedBy, url);
                             } catch (err) {
                                 console.warn("Failed to parse a JSON line from yt-dlp:", err);
                                 return [];
@@ -212,7 +222,7 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
                     const args = this.buildArgs(query, "info");
                     const result = await this.ytdlp.execPromise(args);
                     const json = JSON.parse(result);
-                    const tracks = this.buildTracksFromYtDlp(json, context.requestedBy);
+                    const tracks = this.buildTracksFromYtDlp(json, context.requestedBy, query);
                     return { playlist: null, tracks };
                 }
                 default:

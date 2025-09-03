@@ -76,20 +76,30 @@ class RadikoExtractor extends discord_player_1.BaseExtractor {
             args.push("--extractor-args", "rajiko:no_stream_blacklist");
         return args;
     }
-    buildTracksFromYtDlp(json, requestedBy) {
+    buildTracksFromYtDlp(json, requestedBy, url) {
         var _a;
         const entries = (_a = json.entries) !== null && _a !== void 0 ? _a : [json];
-        return entries.map((item) => {
-            var _a, _b, _c, _d, _e, _f, _g;
+        return entries.map((data) => {
+            var _a, _b, _c, _d, _e;
             return new discord_player_1.Track(this.context.player, {
-                title: (_a = item.title) !== null && _a !== void 0 ? _a : "Unknown Title",
-                url: (_c = (_b = item.url) !== null && _b !== void 0 ? _b : item.webpage_url) !== null && _c !== void 0 ? _c : "",
-                author: (_d = item.uploader) !== null && _d !== void 0 ? _d : "Radiko",
-                duration: item.is_live ? "Currently Live" : ((_e = item.duration) !== null && _e !== void 0 ? _e : 0).toString(),
-                thumbnail: (_f = item.thumbnail) !== null && _f !== void 0 ? _f : null,
+                title: (_a = data.title) !== null && _a !== void 0 ? _a : "Unknown Title",
+                url: url,
+                author: (_b = data.uploader) !== null && _b !== void 0 ? _b : "Radiko",
+                duration: data.is_live ? "Currently Live" : ((_c = data.duration) !== null && _c !== void 0 ? _c : 0).toString(),
+                thumbnail: (_d = data.thumbnail) !== null && _d !== void 0 ? _d : null,
                 requestedBy: typeof requestedBy === "string" ? null : requestedBy,
-                description: (_g = item.description) !== null && _g !== void 0 ? _g : "",
+                description: (_e = data.description) !== null && _e !== void 0 ? _e : "",
                 engine: this.identifier,
+                metadata: {
+                    raw: {
+                        title: data.title,
+                        url: data.url,
+                        uploader: data.uploader,
+                        duration: data.duration,
+                        thumbnail: data.thumbnail,
+                        is_live: data.is_live,
+                    },
+                },
             });
         });
     }
@@ -153,7 +163,7 @@ class RadikoExtractor extends discord_player_1.BaseExtractor {
                         .filter(line => line.trim())
                         .flatMap(line => {
                         try {
-                            return this.buildTracksFromYtDlp(JSON.parse(line), context.requestedBy);
+                            return this.buildTracksFromYtDlp(JSON.parse(line), context.requestedBy, url);
                         }
                         catch (err) {
                             console.warn("Failed to parse a JSON line from yt-dlp:", err);
@@ -166,7 +176,7 @@ class RadikoExtractor extends discord_player_1.BaseExtractor {
                     const args = this.buildArgs(query, "info");
                     const result = await this.ytdlp.execPromise(args);
                     const json = JSON.parse(result);
-                    const tracks = this.buildTracksFromYtDlp(json, context.requestedBy);
+                    const tracks = this.buildTracksFromYtDlp(json, context.requestedBy, query);
                     return { playlist: null, tracks };
                 }
                 default:
