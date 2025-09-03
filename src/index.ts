@@ -219,7 +219,7 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
                     console.log("Data:", data)
                     const track: Track = new Track(this.context.player, {
                         title: data.title ?? "Unknown Title",
-                        url: data.entries[0].webpage_url ?? url,
+                        url: data.webpage_url ?? url,
                         author: data.uploader ?? "Radiko",
                         duration: data.is_live ? "Currently Live" : (data.duration ?? 0).toString(),
                         thumbnail: data.thumbnail ?? null,
