@@ -152,15 +152,25 @@ class RadikoExtractor extends discord_player_1.BaseExtractor {
                     const url = `https://radiko.jp/#!/search/live?key=${encodeURIComponent(query)}&filter=past`;
                     const args = this.buildArgs(url, "info");
                     const result = await this.ytdlp.execPromise(args);
-                    const firstJson = result.split("\n")[0];
-                    const tracks = this.buildTracksFromYtDlp(firstJson, context.requestedBy);
+                    const tracks = result
+                        .split("\n")
+                        .filter(line => line.trim())
+                        .flatMap(line => {
+                        try {
+                            return this.buildTracksFromYtDlp(JSON.parse(line), context.requestedBy);
+                        }
+                        catch (err) {
+                            console.warn("Failed to parse a JSON line from yt-dlp:", err);
+                            return [];
+                        }
+                    });
                     return { playlist: null, tracks };
                 }
                 case "radikoSearchByUrl": {
                     const args = this.buildArgs(query, "info");
                     const result = await this.ytdlp.execPromise(args);
-                    const firstJson = result.split("\n")[0];
-                    const tracks = this.buildTracksFromYtDlp(firstJson, context.requestedBy);
+                    const json = JSON.parse(result);
+                    const tracks = this.buildTracksFromYtDlp(json, context.requestedBy);
                     return { playlist: null, tracks };
                 }
                 default:
