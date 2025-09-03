@@ -153,6 +153,8 @@ class RadikoExtractor extends discord_player_1.BaseExtractor {
     }
     // This method is called when discord-player wants a search result
     async handle(query, context) {
+        var _a, _b, _c, _d, _e;
+        console.log("handle() function start");
         if (!context.protocol)
             context.protocol = "radikoSearchByKeyWords";
         try {
@@ -161,6 +163,29 @@ class RadikoExtractor extends discord_player_1.BaseExtractor {
                     const url = `https://radiko.jp/#!/search/live?key=${encodeURIComponent(query)}&filter=past`;
                     const args = this.buildArgs(url, "info");
                     const result = await this.ytdlp.execPromise(args);
+                    console.log(result);
+                    const firstJson = result.split("\n")[0];
+                    const data = JSON.parse(firstJson);
+                    const track = new discord_player_1.Track(this.context.player, {
+                        title: (_a = data.title) !== null && _a !== void 0 ? _a : "Unknown Title",
+                        url: url,
+                        author: (_b = data.uploader) !== null && _b !== void 0 ? _b : "Radiko",
+                        duration: data.is_live ? "Currently Live" : ((_c = data.duration) !== null && _c !== void 0 ? _c : 0).toString(),
+                        thumbnail: (_d = data.thumbnail) !== null && _d !== void 0 ? _d : null,
+                        requestedBy: typeof context.requestedBy === "string" ? null : context.requestedBy,
+                        description: (_e = data.description) !== null && _e !== void 0 ? _e : "",
+                        engine: this.identifier,
+                        metadata: {
+                            raw: {
+                                title: data.title,
+                                url: data.url,
+                                uploader: data.uploader,
+                                duration: data.duration,
+                                thumbnail: data.thumbnail,
+                                is_live: data.is_live,
+                            },
+                        },
+                    });
                     const tracks = result
                         .split("\n")
                         .filter(line => line.trim())
@@ -193,6 +218,7 @@ class RadikoExtractor extends discord_player_1.BaseExtractor {
     }
     // This method is called when discord-player wants to stream a track
     async stream(track) {
+        console.log("stream() function start");
         const args = this.buildArgs(track.url, "stream");
         const stream = this.ytdlp.execStream(args);
         this.activeStream.add(stream);

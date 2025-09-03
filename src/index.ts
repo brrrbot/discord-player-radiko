@@ -202,6 +202,7 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
 
     // This method is called when discord-player wants a search result
     async handle(query: string, context: ExtractorSearchContext): Promise<ExtractorInfo> {
+        console.log("handle() function start")
         if (!context.protocol) context.protocol = "radikoSearchByKeyWords";
 
         try {
@@ -210,6 +211,29 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
                     const url = `https://radiko.jp/#!/search/live?key=${encodeURIComponent(query)}&filter=past`;
                     const args = this.buildArgs(url, "info");
                     const result = await this.ytdlp.execPromise(args);
+                    console.log(result);
+                    const firstJson = result.split("\n")[0];
+                    const data = JSON.parse(firstJson);
+                    const track = new Track(this.context.player, {
+                        title: data.title ?? "Unknown Title",
+                        url: url,
+                        author: data.uploader ?? "Radiko",
+                        duration: data.is_live ? "Currently Live" : (data.duration ?? 0).toString(),
+                        thumbnail: data.thumbnail ?? null,
+                        requestedBy: typeof context.requestedBy === "string" ? null : context.requestedBy,
+                        description: data.description ?? "",
+                        engine: this.identifier,
+                        metadata: {
+                            raw: {
+                                title: data.title,
+                                url: data.url,
+                                uploader: data.uploader,
+                                duration: data.duration,
+                                thumbnail: data.thumbnail,
+                                is_live: data.is_live,
+                            },
+                        },
+                    })
                     const tracks: Track[] = result
                         .split("\n")
                         .filter(line => line.trim())
@@ -242,6 +266,7 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
 
     // This method is called when discord-player wants to stream a track
     async stream(track: Track): Promise<ExtractorStreamable> {
+        console.log("stream() function start")
         const args = this.buildArgs(track.url, "stream");
         const stream = this.ytdlp.execStream(args);
         this.activeStream.add(stream);
