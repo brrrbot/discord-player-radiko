@@ -6,7 +6,6 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.RadikoExtractor = exports.device = exports.format = void 0;
 const discord_player_1 = require("discord-player");
 const yt_dlp_wrap_1 = __importDefault(require("yt-dlp-wrap"));
-const axios_1 = __importDefault(require("axios"));
 const node_child_process_1 = require("node:child_process");
 var format;
 (function (format) {
@@ -98,21 +97,6 @@ class RadikoExtractor extends discord_player_1.BaseExtractor {
             });
         });
     }
-    async findPersonId(name) {
-        const url = `https://radiko.jp/#!/search/live?key=${encodeURIComponent(name)}&filter=past`;
-        try {
-            const res = await axios_1.default.get(url);
-            const html = res.data;
-            const match = html.match(/\/persons\/(\d+)/);
-            if (match)
-                return match[1];
-            return null;
-        }
-        catch (error) {
-            console.error("error fetching person id: ", error);
-            return null;
-        }
-    }
     // This method is called when extractor is loaded into discord-player's registry
     async activate() {
         var _a;
@@ -121,7 +105,13 @@ class RadikoExtractor extends discord_player_1.BaseExtractor {
             this.ytdlp = new yt_dlp_wrap_1.default(ytdlpBinary);
             (0, node_child_process_1.execSync)(`${ytdlpBinary} --version`, { stdio: "ignore" });
             try {
-                (0, node_child_process_1.execSync)(`${ytdlpBinary} --extractor-args rajiko:test`, { stdio: "ignore" });
+                const output = (0, node_child_process_1.execSync)("pip show yt-dlp-rajiko").toString().trim();
+                if (output) {
+                    console.log("yt-dlp-rajiko is installed");
+                }
+                else {
+                    console.warn("yt-dlp-rajiko is not installed");
+                }
             }
             catch {
                 console.warn("yt-dlp-rajiko does not appear to be installed. Some Radiko streams may fail.");
@@ -172,10 +162,7 @@ class RadikoExtractor extends discord_player_1.BaseExtractor {
                     return { playlist: null, tracks };
                 }
                 case "radikoSearchByPerson": {
-                    const personId = await this.findPersonId(query);
-                    if (!personId)
-                        return { playlist: null, tracks: [] };
-                    const url = `https://radiko.jp/persons/${personId}`;
+                    const url = `https://radiko.jp/persons/${encodeURIComponent(query)}`;
                     const args = this.buildArgs(url, "info");
                     const result = await this.ytdlp.execPromise(args);
                     const playlistJsonLine = result

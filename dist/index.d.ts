@@ -84,7 +84,6 @@ export declare class RadikoExtractor extends BaseExtractor<RadikoExtractorOption
     constructor(context: ExtractorExecutionContext, options?: RadikoExtractorOptions);
     private buildArgs;
     private buildTracksFromYtDlp;
-    private findPersonId;
     createBridgeQuery: (track: Track) => string;
     activate(): Promise<void>;
     deactivate(): Promise<void>;
