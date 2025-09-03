@@ -108,7 +108,6 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
 
         if (mode === "info") {
             args.push(
-                url,
                 "-J",
                 "-N", "30",
                 "--embed-metadata",
@@ -200,11 +199,24 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
                     const args = this.buildArgs(url, "info");
                     const result = await this.ytdlp.execPromise(args);
 
-                    // yt-dlp outputs multiple JSON lines, find the playlist line
-                    const playlistJsonLine = result
+                    // keep only valid JSON lines
+                    const jsonLines = result
                         .split("\n")
-                        .find(line => line.includes('"_type": "playlist"'));
+                        .filter(line => {
+                            try {
+                                JSON.parse(line);
+                                return true;
+                            } catch {
+                                return false;
+                            }
+                        });
 
+                    if (jsonLines.length === 0) {
+                        return { playlist: null, tracks: [] };
+                    }
+
+                    // find playlist JSON
+                    const playlistJsonLine = jsonLines.find(line => line.includes('"_type": "playlist"'));
                     if (!playlistJsonLine) {
                         return { playlist: null, tracks: [] };
                     }
@@ -214,7 +226,7 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
 
                     const tracks = (data.entries || []).map((entry: any) => {
                         if (entry.release_timestamp && entry.release_timestamp > now) {
-                            // Upcoming program → return info only, not playable
+                            // Upcoming program → return info only
                             return {
                                 title: entry.title,
                                 url: entry.webpage_url,
@@ -224,7 +236,7 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
                                 release_timestamp: entry.release_timestamp
                             };
                         } else {
-                            // Already playable → build as usual
+                            // Already playable → build full track
                             return this.buildTracksFromYtDlp(entry, context.requestedBy);
                         }
                     });
@@ -235,9 +247,23 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
                 case "radikoSearchByUrl": {
                     const args = this.buildArgs(query, "info");
                     const result = await this.ytdlp.execPromise(args);
-                    const firstJson = result.split("\n")[0];
-                    const data = JSON.parse(firstJson);
 
+                    const jsonLines = result
+                        .split("\n")
+                        .filter(line => {
+                            try {
+                                JSON.parse(line);
+                                return true;
+                            } catch {
+                                return false;
+                            }
+                        });
+
+                    if (jsonLines.length === 0) {
+                        return { playlist: null, tracks: [] };
+                    }
+
+                    const data = JSON.parse(jsonLines[0]);
                     const now = Date.now() / 1000;
                     let tracks: any[] = [];
 
