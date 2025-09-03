@@ -214,9 +214,10 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
                     console.log(result);
                     const firstJson = result.split("\n")[0];
                     const data = JSON.parse(firstJson);
-                    const track = new Track(this.context.player, {
+                    console.log(data)
+                    const track: Track = new Track(this.context.player, {
                         title: data.title ?? "Unknown Title",
-                        url: url,
+                        url: data.url,
                         author: data.uploader ?? "Radiko",
                         duration: data.is_live ? "Currently Live" : (data.duration ?? 0).toString(),
                         thumbnail: data.thumbnail ?? null,
@@ -233,20 +234,9 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
                                 is_live: data.is_live,
                             },
                         },
-                    })
-                    const tracks: Track[] = result
-                        .split("\n")
-                        .filter(line => line.trim())
-                        .flatMap(line => {
-                            try {
-                                return this.buildTracksFromYtDlp(JSON.parse(line), context.requestedBy, url);
-                            } catch (err) {
-                                console.warn("Failed to parse a JSON line from yt-dlp:", err);
-                                return [];
-                            }
-                        });
+                    });
 
-                    return { playlist: null, tracks };
+                    return { playlist: null, tracks: [track] };
                 }
                 case "radikoSearchByUrl": {
                     const args = this.buildArgs(query, "info");

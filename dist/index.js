@@ -166,9 +166,10 @@ class RadikoExtractor extends discord_player_1.BaseExtractor {
                     console.log(result);
                     const firstJson = result.split("\n")[0];
                     const data = JSON.parse(firstJson);
+                    console.log(data);
                     const track = new discord_player_1.Track(this.context.player, {
                         title: (_a = data.title) !== null && _a !== void 0 ? _a : "Unknown Title",
-                        url: url,
+                        url: data.url,
                         author: (_b = data.uploader) !== null && _b !== void 0 ? _b : "Radiko",
                         duration: data.is_live ? "Currently Live" : ((_c = data.duration) !== null && _c !== void 0 ? _c : 0).toString(),
                         thumbnail: (_d = data.thumbnail) !== null && _d !== void 0 ? _d : null,
@@ -186,19 +187,7 @@ class RadikoExtractor extends discord_player_1.BaseExtractor {
                             },
                         },
                     });
-                    const tracks = result
-                        .split("\n")
-                        .filter(line => line.trim())
-                        .flatMap(line => {
-                        try {
-                            return this.buildTracksFromYtDlp(JSON.parse(line), context.requestedBy, url);
-                        }
-                        catch (err) {
-                            console.warn("Failed to parse a JSON line from yt-dlp:", err);
-                            return [];
-                        }
-                    });
-                    return { playlist: null, tracks };
+                    return { playlist: null, tracks: [track] };
                 }
                 case "radikoSearchByUrl": {
                     const args = this.buildArgs(query, "info");
