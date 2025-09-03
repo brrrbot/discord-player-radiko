@@ -195,7 +195,12 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
         try {
             switch (context.protocol) {
                 case "radikoSearchByKeyWords": {
-                    const url = `https://radiko.jp/#!/search/live?key=${encodeURIComponent(query)}`;
+                    const today = new Date();
+                    const pastDate = new Date(today);
+                    pastDate.setDate(today.getDate() - 30);
+                    const start_day = pastDate.toISOString().slice(0, 10);
+
+                    const url = `https://radiko.jp/#!/search/live?key=${encodeURIComponent(query)}&start_day=${start_day}`;
                     const args = this.buildArgs(url, "info");
                     const result = await this.ytdlp.execPromise(args);
                     const playlistJsonLine = result
@@ -208,8 +213,13 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
                     return { playlist: null, tracks };
                 }
 
-                case "radikoSearchByPerson": {
-                    const url = `https://radiko.jp/persons/${encodeURIComponent(query)}`;
+                case "radikoSearchSakuna": {
+                    const today = new Date();
+                    const pastDate = new Date(today);
+                    pastDate.setDate(today.getDate() - 30);
+                    const start_day = pastDate.toISOString().slice(0, 10);
+
+                    const url = `https://radiko.jp/#!/search/live?key=結城さくな&start_day=${start_day}&&area_id=JP13`;
                     const args = this.buildArgs(url, "info");
                     const result = await this.ytdlp.execPromise(args);
                     const playlistJsonLine = result
