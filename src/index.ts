@@ -112,7 +112,7 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
                 "-N", "30",
                 "--embed-metadata",
                 "--embed-thumbnail",
-                // wrap entire output template in quotes
+                "--skip-download",
                 "-o", '"%(title)s %(timestamp+32400>%Y-%m-%d_%H%M)s [%(id)s].%(ext)s"',
             );
         }

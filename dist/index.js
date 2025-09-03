@@ -63,9 +63,7 @@ class RadikoExtractor extends discord_player_1.BaseExtractor {
         var _a, _b, _c, _d, _e;
         const args = [url];
         if (mode === "info") {
-            args.push("-J", "-N", "30", "--embed-metadata", "--embed-thumbnail", 
-            // wrap entire output template in quotes
-            "-o", '"%(title)s %(timestamp+32400>%Y-%m-%d_%H%M)s [%(id)s].%(ext)s"');
+            args.push("-J", "-N", "30", "--embed-metadata", "--embed-thumbnail", "--skip-download", "-o", '"%(title)s %(timestamp+32400>%Y-%m-%d_%H%M)s [%(id)s].%(ext)s"');
         }
         if (mode === "stream") {
             args.push("-f", (_a = this.options.format) !== null && _a !== void 0 ? _a : format.BESTAUDIO);
