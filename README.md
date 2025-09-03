@@ -5,7 +5,7 @@
 # Installation:
 npm i discord-player-radiko
 
-# Usage:
+# Usage: (also import device & format if you plan to have custom options)
 import { RadikoExtractor } from "discord-player-radiko";
 or
 const { RadikoExtractor } = require "discord-player-radiko";
