@@ -144,7 +144,6 @@ class RadikoExtractor extends discord_player_1.BaseExtractor {
     }
     // This method is called when discord-player wants a search result
     async handle(query, context) {
-        var _a, _b, _c, _d;
         if (!context.protocol)
             context.protocol = "radikoSearchByKeyWords";
         try {
@@ -152,98 +151,16 @@ class RadikoExtractor extends discord_player_1.BaseExtractor {
                 case "radikoSearchByKeyWords": {
                     const url = `https://radiko.jp/#!/search/live?key=${encodeURIComponent(query)}&filter=past`;
                     const args = this.buildArgs(url, "info");
-                    let result;
-                    try {
-                        result = await this.ytdlp.execPromise(args);
-                    }
-                    catch (error) {
-                        if (((_a = error.stderr) === null || _a === void 0 ? void 0 : _a.includes("Programme has not aired yet")) || ((_b = error.message) === null || _b === void 0 ? void 0 : _b.includes("Programme has not aired yet"))) {
-                            result = error.stdout || "";
-                        }
-                        else {
-                            throw error;
-                        }
-                    }
-                    // Only keep valid JSON lines
-                    const jsonLines = result
-                        .split("\n")
-                        .filter(line => {
-                        try {
-                            JSON.parse(line);
-                            return true;
-                        }
-                        catch {
-                            return false;
-                        }
-                    });
-                    const playlistJsonLine = jsonLines.find(line => line.includes('"_type": "playlist"'));
-                    if (!playlistJsonLine)
-                        return { playlist: null, tracks: [] };
-                    const data = JSON.parse(playlistJsonLine);
-                    const now = Date.now() / 1000;
-                    const tracks = (data.entries || []).map((entry) => {
-                        if (entry.release_timestamp && entry.release_timestamp > now) {
-                            // upcoming program → info only
-                            return {
-                                title: entry.title,
-                                url: entry.webpage_url,
-                                upcoming: true,
-                                uploader: entry.uploader,
-                                thumbnail: entry.thumbnail,
-                                release_timestamp: entry.release_timestamp
-                            };
-                        }
-                        else {
-                            // already playable → normal track
-                            return this.buildTracksFromYtDlp(entry, context.requestedBy);
-                        }
-                    }).flat(); // flatten in case buildTracksFromYtDlp returns array
+                    const result = await this.ytdlp.execPromise(args);
+                    const firstJson = result.split("\n")[0];
+                    const tracks = this.buildTracksFromYtDlp(firstJson, context.requestedBy);
                     return { playlist: null, tracks };
                 }
                 case "radikoSearchByUrl": {
                     const args = this.buildArgs(query, "info");
-                    let result;
-                    try {
-                        result = await this.ytdlp.execPromise(args);
-                    }
-                    catch (error) {
-                        if (((_c = error.stderr) === null || _c === void 0 ? void 0 : _c.includes("Programme has not aired yet")) || ((_d = error.message) === null || _d === void 0 ? void 0 : _d.includes("Programme has not aired yet"))) {
-                            result = error.stdout || "";
-                        }
-                        else {
-                            throw error;
-                        }
-                    }
-                    const firstJsonLine = result
-                        .split("\n")
-                        .find(line => {
-                        try {
-                            JSON.parse(line);
-                            return true;
-                        }
-                        catch {
-                            return false;
-                        }
-                    });
-                    if (!firstJsonLine)
-                        return { playlist: null, tracks: [] };
-                    const data = JSON.parse(firstJsonLine);
-                    const now = Date.now() / 1000;
-                    const tracks = (data.entries || [data]).map((entry) => {
-                        if (entry.release_timestamp && entry.release_timestamp > now) {
-                            return {
-                                title: entry.title,
-                                url: entry.webpage_url,
-                                upcoming: true,
-                                uploader: entry.uploader,
-                                thumbnail: entry.thumbnail,
-                                release_timestamp: entry.release_timestamp
-                            };
-                        }
-                        else {
-                            return this.buildTracksFromYtDlp(entry, context.requestedBy);
-                        }
-                    }).flat();
+                    const result = await this.ytdlp.execPromise(args);
+                    const firstJson = result.split("\n")[0];
+                    const tracks = this.buildTracksFromYtDlp(firstJson, context.requestedBy);
                     return { playlist: null, tracks };
                 }
                 default:
