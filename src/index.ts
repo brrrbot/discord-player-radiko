@@ -219,7 +219,7 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
                     pastDate.setDate(today.getDate() - 30);
                     const start_day = pastDate.toISOString().slice(0, 10);
 
-                    const url = `https://radiko.jp/#!/search/live?key=結城さくな&start_day=${start_day}&&area_id=JP13`;
+                    const url = `https://radiko.jp/#!/search/live?key=結城さくな&start_day=${start_day}&area_id=JP13`;
                     const args = this.buildArgs(url, "info");
                     const result = await this.ytdlp.execPromise(args);
                     const playlistJsonLine = result
