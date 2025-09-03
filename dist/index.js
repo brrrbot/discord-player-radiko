@@ -166,7 +166,8 @@ class RadikoExtractor extends discord_player_1.BaseExtractor {
                     const result = await this.ytdlp.execPromise(args);
                     console.log("Result: ", result);
                     const firstJson = result.split("\n")[0];
-                    const data = JSON.parse(firstJson);
+                    const item = JSON.parse(firstJson);
+                    const data = item.entries[0];
                     console.log("Data:", data);
                     const track = new discord_player_1.Track(this.context.player, {
                         title: (_a = data.title) !== null && _a !== void 0 ? _a : "Unknown Title",
@@ -177,6 +178,11 @@ class RadikoExtractor extends discord_player_1.BaseExtractor {
                         requestedBy: typeof context.requestedBy === "string" ? null : context.requestedBy,
                         description: (_f = data.description) !== null && _f !== void 0 ? _f : "",
                         engine: this.identifier,
+                        source: "radiko",
+                        raw: {
+                            source: data.url, // 👈 the .m3u8
+                            url: data.url
+                        },
                         metadata: {
                             raw: {
                                 title: data.title,

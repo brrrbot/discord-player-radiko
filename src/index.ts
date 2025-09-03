@@ -1,4 +1,4 @@
-import { BaseExtractor, ExtractorExecutionContext, ExtractorInfo, ExtractorSearchContext, ExtractorStreamable, GuildQueueHistory, QueryType, SearchQueryType, Track } from "discord-player";
+import { BaseExtractor, ExtractorExecutionContext, ExtractorInfo, ExtractorSearchContext, ExtractorStreamable, GuildQueueHistory, QueryType, SearchQueryType, Track, TrackSource } from "discord-player";
 import { Readable } from "node:stream";
 import YTDlpWrap from "yt-dlp-wrap";
 import { execSync } from "node:child_process";
@@ -212,10 +212,11 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
                     const url = `https://radiko.jp/#!/search/live?key=${encodeURIComponent(query)}&filter=past`;
                     const args = this.buildArgs(url, "info");
                     const result = await this.ytdlp.execPromise(args);
-                    console.log("Result: ",result);
+                    console.log("Result: ", result);
                     const firstJson = result.split("\n")[0];
-                    const data = JSON.parse(firstJson);
-                    console.log("Data:",data)
+                    const item = JSON.parse(firstJson);
+                    const data = item.entries[0];
+                    console.log("Data:", data)
                     const track: Track = new Track(this.context.player, {
                         title: data.title ?? "Unknown Title",
                         url: data.entries[0].webpage_url ?? url,
@@ -225,6 +226,11 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
                         requestedBy: typeof context.requestedBy === "string" ? null : context.requestedBy,
                         description: data.description ?? "",
                         engine: this.identifier,
+                        source: "radiko" as TrackSource,
+                        raw: {
+                            source: data.url,   // 👈 the .m3u8
+                            url: data.url
+                        },
                         metadata: {
                             raw: {
                                 title: data.title,
@@ -237,9 +243,9 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
                         },
                     });
 
-                    return { 
-                        playlist: null, 
-                        tracks: [track] 
+                    return {
+                        playlist: null,
+                        tracks: [track]
                     };
                 }
                 case "radikoSearchByUrl": {
