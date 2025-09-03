@@ -63,7 +63,7 @@ class RadikoExtractor extends discord_player_1.BaseExtractor {
         var _a, _b, _c, _d, _e;
         const args = [url];
         if (mode === "info") {
-            args.push("-J", "-N", "30", "--embed-metadata", "--embed-thumbnail", "-o", '"%(title)s %(timestamp+32400>%Y-%m-%d_%H%M)s [%(id)s].%(ext)s"');
+            args.push("-J", "-N", "30", "--embed-metadata", "--embed-thumbnail", "-o", "%(title)s %(timestamp+32400>%Y-%m-%d_%H%M)s [%(id)s].%(ext)s");
         }
         if (mode === "stream") {
             args.push("-f", (_a = this.options.format) !== null && _a !== void 0 ? _a : format.BESTAUDIO, "-o", '-');
@@ -149,8 +149,7 @@ class RadikoExtractor extends discord_player_1.BaseExtractor {
     async validate(query, type) {
         if (type && type !== discord_player_1.QueryType.AUTO)
             return false;
-        //return /radiko\.jp/.test(query);
-        return true;
+        return /radiko\.jp/.test(query);
     }
     // This method is called when discord-player wants a search result
     async handle(query, context) {

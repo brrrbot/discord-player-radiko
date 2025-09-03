@@ -112,7 +112,7 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
                 "-N", "30",
                 "--embed-metadata",
                 "--embed-thumbnail",
-                "-o", '"%(title)s %(timestamp+32400>%Y-%m-%d_%H%M)s [%(id)s].%(ext)s"',
+                "-o", "%(title)s %(timestamp+32400>%Y-%m-%d_%H%M)s [%(id)s].%(ext)s",
             );
         }
 
@@ -197,8 +197,7 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
     // This method is called when discord-player wants metadata, return false to direct to another extractor
     async validate(query: string, type?: SearchQueryType | null): Promise<boolean> {
         if (type && type !== QueryType.AUTO) return false;
-        //return /radiko\.jp/.test(query);
-        return true
+        return /radiko\.jp/.test(query);
     }
 
     // This method is called when discord-player wants a search result
