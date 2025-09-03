@@ -1,6 +1,6 @@
 {
   "name": "discord-player-radiko",
-  "version": "1.2.5",
+  "version": "1.2.6",
   "description": "Extractor plugin for discord player to fetch Radiko streams.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
