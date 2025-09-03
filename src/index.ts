@@ -112,13 +112,12 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
                 "-N", "30",
                 "--embed-metadata",
                 "--embed-thumbnail",
-                "-o", '"%(title)s %(timestamp+32400>%Y-%m-%d_%H%M)s [%(id)s].%(ext)s"',
             );
         }
 
         if (mode === "stream") {
             args.push("-f", this.options.format ?? format.BESTAUDIO);
-            args.push("-o", "-");
+            args.push("-o", '"%(title)s %(timestamp+32400>%Y-%m-%d_%H%M)s [%(id)s].%(ext)s"');
         }
 
         // Add user options if provided
