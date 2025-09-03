@@ -197,7 +197,8 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
     // This method is called when discord-player wants metadata, return false to direct to another extractor
     async validate(query: string, type?: SearchQueryType | null): Promise<boolean> {
         if (type && type !== QueryType.AUTO) return false;
-        return /radiko\.jp/.test(query);
+        //return /radiko\.jp/.test(query);
+        return true
     }
 
     // This method is called when discord-player wants a search result
@@ -217,7 +218,7 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
                     console.log("Data:",data)
                     const track: Track = new Track(this.context.player, {
                         title: data.title ?? "Unknown Title",
-                        url: data.entries.webpage_url ?? url,
+                        url: data.entries[0].webpage_url ?? url,
                         author: data.uploader ?? "Radiko",
                         duration: data.is_live ? "Currently Live" : (data.duration ?? 0).toString(),
                         thumbnail: data.thumbnail ?? null,
@@ -236,7 +237,10 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
                         },
                     });
 
-                    return { playlist: null, tracks: [track] };
+                    return { 
+                        playlist: null, 
+                        tracks: [track] 
+                    };
                 }
                 case "radikoSearchByUrl": {
                     const args = this.buildArgs(query, "info");
