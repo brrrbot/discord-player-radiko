@@ -192,24 +192,43 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
     // This method is called when discord-player wants a search result
     async handle(query: string, context: ExtractorSearchContext): Promise<ExtractorInfo> {
         if (!context.protocol) context.protocol = "radikoSearchByKeyWords";
+
         try {
             switch (context.protocol) {
                 case "radikoSearchByKeyWords": {
-                    const today = new Date();
-                    const pastDate = new Date(today);
-                    pastDate.setDate(today.getDate() - 30);
-                    const start_day = pastDate.toISOString().slice(0, 10);
-
                     const url = `https://radiko.jp/#!/search/live?key=${encodeURIComponent(query)}`;
                     const args = this.buildArgs(url, "info");
                     const result = await this.ytdlp.execPromise(args);
+
+                    // yt-dlp outputs multiple JSON lines, find the playlist line
                     const playlistJsonLine = result
                         .split("\n")
                         .find(line => line.includes('"_type": "playlist"'));
-                    if (!playlistJsonLine) return { playlist: null, tracks: [] };
-                    const data = JSON.parse(playlistJsonLine);
 
-                    const tracks = this.buildTracksFromYtDlp(data, context.requestedBy);
+                    if (!playlistJsonLine) {
+                        return { playlist: null, tracks: [] };
+                    }
+
+                    const data = JSON.parse(playlistJsonLine);
+                    const now = Date.now() / 1000;
+
+                    const tracks = (data.entries || []).map((entry: any) => {
+                        if (entry.release_timestamp && entry.release_timestamp > now) {
+                            // Upcoming program → return info only, not playable
+                            return {
+                                title: entry.title,
+                                url: entry.webpage_url,
+                                upcoming: true,
+                                uploader: entry.uploader,
+                                thumbnail: entry.thumbnail,
+                                release_timestamp: entry.release_timestamp
+                            };
+                        } else {
+                            // Already playable → build as usual
+                            return this.buildTracksFromYtDlp(entry, context.requestedBy);
+                        }
+                    });
+
                     return { playlist: null, tracks };
                 }
 
@@ -219,15 +238,33 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
                     const firstJson = result.split("\n")[0];
                     const data = JSON.parse(firstJson);
 
-                    const tracks = this.buildTracksFromYtDlp(data, context.requestedBy);
+                    const now = Date.now() / 1000;
+                    let tracks: any[] = [];
+
+                    if (data.release_timestamp && data.release_timestamp > now) {
+                        // Upcoming program → info only
+                        tracks = [{
+                            title: data.title,
+                            url: data.webpage_url,
+                            upcoming: true,
+                            uploader: data.uploader,
+                            thumbnail: data.thumbnail,
+                            release_timestamp: data.release_timestamp
+                        }];
+                    } else {
+                        // Playable
+                        tracks = this.buildTracksFromYtDlp(data, context.requestedBy);
+                    }
+
                     return { playlist: null, tracks };
                 }
 
-                default: return { playlist: null, tracks: [] };
+                default:
+                    return { playlist: null, tracks: [] };
             }
-        } catch (error) {
-            console.error("Error retrieving data from Radiko: ", error);
-            return { playlist: null, tracks: [] }
+        } catch (error: any) {
+            console.error("Error retrieving data from Radiko:", error?.stderr || error?.message || error);
+            return { playlist: null, tracks: [] };
         }
     }
 
