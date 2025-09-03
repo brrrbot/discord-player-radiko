@@ -157,7 +157,7 @@ class RadikoExtractor extends discord_player_1.BaseExtractor {
         var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
         console.log("handle() function start");
         if (!context.protocol)
-            context.protocol = "radikoSearchByKeyWords";
+            context.protocol = "radikoSearchByUrl";
         try {
             switch (context.protocol) {
                 case "radikoSearchByKeyWords": {

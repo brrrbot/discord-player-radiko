@@ -204,7 +204,7 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
     // This method is called when discord-player wants a search result
     async handle(query: string, context: ExtractorSearchContext): Promise<ExtractorInfo> {
         console.log("handle() function start")
-        if (!context.protocol) context.protocol = "radikoSearchByKeyWords";
+        if (!context.protocol) context.protocol = "radikoSearchByUrl";
 
         try {
             switch (context.protocol) {
