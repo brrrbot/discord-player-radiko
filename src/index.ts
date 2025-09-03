@@ -4,7 +4,7 @@ import YTDlpWrap from "yt-dlp-wrap";
 import axios from "axios";
 import { execSync } from "node:child_process";
 
-enum format {
+export enum format {
     /** Best audio option available */
     BESTAUDIO = "bestaudio",
     /** AAC in MP4 container, most commonly used */
@@ -21,7 +21,7 @@ enum format {
     DASH = ".dash"
 }
 
-enum device {
+export enum device {
     /** Website with every stream provider */
     PC_HTML5 = "pc_html5",
     /** Old mobile app */

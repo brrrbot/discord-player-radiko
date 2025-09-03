@@ -1,5 +1,5 @@
 import { BaseExtractor, ExtractorExecutionContext, ExtractorInfo, ExtractorSearchContext, ExtractorStreamable, GuildQueueHistory, SearchQueryType, Track } from "discord-player";
-declare enum format {
+export declare enum format {
     /** Best audio option available */
     BESTAUDIO = "bestaudio",
     /** AAC in MP4 container, most commonly used */
@@ -15,7 +15,7 @@ declare enum format {
     /** MPEG-DASH manifest with seperate audio/video tracks */
     DASH = ".dash"
 }
-declare enum device {
+export declare enum device {
     /** Website with every stream provider */
     PC_HTML5 = "pc_html5",
     /** Old mobile app */

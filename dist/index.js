@@ -3,7 +3,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.RadikoExtractor = void 0;
+exports.RadikoExtractor = exports.device = exports.format = void 0;
 const discord_player_1 = require("discord-player");
 const yt_dlp_wrap_1 = __importDefault(require("yt-dlp-wrap"));
 const axios_1 = __importDefault(require("axios"));
@@ -24,7 +24,7 @@ var format;
     format["TS"] = ".ts";
     /** MPEG-DASH manifest with seperate audio/video tracks */
     format["DASH"] = ".dash";
-})(format || (format = {}));
+})(format || (exports.format = format = {}));
 var device;
 (function (device) {
     /** Website with every stream provider */
@@ -47,7 +47,7 @@ var device;
     device["aSmartPhone8"] = "aSmartPhone8";
     /** Embedded players on stations' websites */
     device["EXTERNAL"] = "xExternalWebStations";
-})(device || (device = {}));
+})(device || (exports.device = device = {}));
 class RadikoExtractor extends discord_player_1.BaseExtractor {
     // Constructor for config options
     constructor(context, options) {
