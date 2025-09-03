@@ -112,13 +112,14 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
                 "-N", "30",
                 "--embed-metadata",
                 "--embed-thumbnail",
-                "-o", "%(title)s %(timestamp+32400>%Y-%m-%d_%H%M)s [%(id)s].%(ext)s",
+                // wrap entire output template in quotes
+                "-o", '"%(title)s %(timestamp+32400>%Y-%m-%d_%H%M)s [%(id)s].%(ext)s"',
             );
         }
 
         if (mode === "stream") {
             args.push("-f", this.options.format ?? format.BESTAUDIO);
-            args.push("-o", "-")
+            args.push("-o", "-");
         }
 
         // Add user options if provided
@@ -197,36 +198,36 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
                 case "radikoSearchByKeyWords": {
                     const url = `https://radiko.jp/#!/search/live?key=${encodeURIComponent(query)}`;
                     const args = this.buildArgs(url, "info");
-                    const result = await this.ytdlp.execPromise(args);
 
-                    // keep only valid JSON lines
+                    let result: string;
+                    try {
+                        result = await this.ytdlp.execPromise(args);
+                    } catch (error: any) {
+                        // If yt-dlp threw "Programme has not aired yet", still grab stdout
+                        if (error.stderr?.includes("Programme has not aired yet") || error.message?.includes("Programme has not aired yet")) {
+                            result = error.stdout || "";
+                        } else {
+                            throw error;
+                        }
+                    }
+
+                    // Only keep valid JSON lines
                     const jsonLines = result
                         .split("\n")
                         .filter(line => {
-                            try {
-                                JSON.parse(line);
-                                return true;
-                            } catch {
-                                return false;
-                            }
+                            try { JSON.parse(line); return true; }
+                            catch { return false; }
                         });
 
-                    if (jsonLines.length === 0) {
-                        return { playlist: null, tracks: [] };
-                    }
-
-                    // find playlist JSON
                     const playlistJsonLine = jsonLines.find(line => line.includes('"_type": "playlist"'));
-                    if (!playlistJsonLine) {
-                        return { playlist: null, tracks: [] };
-                    }
+                    if (!playlistJsonLine) return { playlist: null, tracks: [] };
 
                     const data = JSON.parse(playlistJsonLine);
                     const now = Date.now() / 1000;
 
                     const tracks = (data.entries || []).map((entry: any) => {
                         if (entry.release_timestamp && entry.release_timestamp > now) {
-                            // Upcoming program → return info only
+                            // upcoming program → info only
                             return {
                                 title: entry.title,
                                 url: entry.webpage_url,
@@ -236,51 +237,53 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
                                 release_timestamp: entry.release_timestamp
                             };
                         } else {
-                            // Already playable → build full track
+                            // already playable → normal track
                             return this.buildTracksFromYtDlp(entry, context.requestedBy);
                         }
-                    });
+                    }).flat(); // flatten in case buildTracksFromYtDlp returns array
 
                     return { playlist: null, tracks };
                 }
 
                 case "radikoSearchByUrl": {
                     const args = this.buildArgs(query, "info");
-                    const result = await this.ytdlp.execPromise(args);
 
-                    const jsonLines = result
+                    let result: string;
+                    try {
+                        result = await this.ytdlp.execPromise(args);
+                    } catch (error: any) {
+                        if (error.stderr?.includes("Programme has not aired yet") || error.message?.includes("Programme has not aired yet")) {
+                            result = error.stdout || "";
+                        } else {
+                            throw error;
+                        }
+                    }
+
+                    const firstJsonLine = result
                         .split("\n")
-                        .filter(line => {
-                            try {
-                                JSON.parse(line);
-                                return true;
-                            } catch {
-                                return false;
-                            }
+                        .find(line => {
+                            try { JSON.parse(line); return true; }
+                            catch { return false; }
                         });
 
-                    if (jsonLines.length === 0) {
-                        return { playlist: null, tracks: [] };
-                    }
+                    if (!firstJsonLine) return { playlist: null, tracks: [] };
+                    const data = JSON.parse(firstJsonLine);
 
-                    const data = JSON.parse(jsonLines[0]);
                     const now = Date.now() / 1000;
-                    let tracks: any[] = [];
-
-                    if (data.release_timestamp && data.release_timestamp > now) {
-                        // Upcoming program → info only
-                        tracks = [{
-                            title: data.title,
-                            url: data.webpage_url,
-                            upcoming: true,
-                            uploader: data.uploader,
-                            thumbnail: data.thumbnail,
-                            release_timestamp: data.release_timestamp
-                        }];
-                    } else {
-                        // Playable
-                        tracks = this.buildTracksFromYtDlp(data, context.requestedBy);
-                    }
+                    const tracks = (data.entries || [data]).map((entry: any) => {
+                        if (entry.release_timestamp && entry.release_timestamp > now) {
+                            return {
+                                title: entry.title,
+                                url: entry.webpage_url,
+                                upcoming: true,
+                                uploader: entry.uploader,
+                                thumbnail: entry.thumbnail,
+                                release_timestamp: entry.release_timestamp
+                            };
+                        } else {
+                            return this.buildTracksFromYtDlp(entry, context.requestedBy);
+                        }
+                    }).flat();
 
                     return { playlist: null, tracks };
                 }
