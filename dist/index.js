@@ -190,12 +190,12 @@ class RadikoExtractor extends discord_player_1.BaseExtractor {
     }
     // This method is called when discord-player wants to stream a track
     async stream(track) {
-        // const args = this.buildArgs(track.url, "stream");
-        // const stream = this.ytdlp.execStream(args);
-        // this.activeStream.add(stream);
-        // stream.on("close", () => this.activeStream.delete(stream));
+        const args = this.buildArgs(track.url, "stream");
+        const stream = this.ytdlp.execStream(args);
+        this.activeStream.add(stream);
+        stream.on("close", () => this.activeStream.delete(stream));
         return {
-            stream: track.url,
+            stream,
             $fmt: "arbitrary",
         };
     }

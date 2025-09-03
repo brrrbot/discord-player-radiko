@@ -138,15 +138,15 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
             description: data.description ?? "",
             engine: this.identifier,
             metadata: {
-                    raw: {
-                        title: data.title,
-                        url: data.url,
-                        uploader: data.uploader,
-                        duration: data.duration,
-                        thumbnail: data.thumbnail,
-                        is_live: data.is_live,
-                    },
+                raw: {
+                    title: data.title,
+                    url: data.url,
+                    uploader: data.uploader,
+                    duration: data.duration,
+                    thumbnail: data.thumbnail,
+                    is_live: data.is_live,
                 },
+            },
         }));
     }
 
@@ -236,13 +236,12 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
 
     // This method is called when discord-player wants to stream a track
     async stream(track: Track): Promise<ExtractorStreamable> {
-        // const args = this.buildArgs(track.url, "stream");
-        // const stream = this.ytdlp.execStream(args);
-
-        // this.activeStream.add(stream);
-        // stream.on("close", () => this.activeStream.delete(stream));
+        const args = this.buildArgs(track.url, "stream");
+        const stream = this.ytdlp.execStream(args);
+        this.activeStream.add(stream);
+        stream.on("close", () => this.activeStream.delete(stream));
         return {
-            stream: track.url as unknown as Readable,
+            stream,
             $fmt: "arbitrary",
         };
     }
