@@ -1,5 +1,5 @@
 import { BaseExtractor, ExtractorExecutionContext, ExtractorInfo, ExtractorSearchContext, ExtractorStreamable, GuildQueueHistory, SearchQueryType, Track } from "discord-player";
-export declare enum format {
+declare enum format {
     /** Best audio option available */
     BESTAUDIO = "bestaudio",
     /** AAC in MP4 container, most commonly used */
@@ -15,7 +15,7 @@ export declare enum format {
     /** MPEG-DASH manifest with seperate audio/video tracks */
     DASH = ".dash"
 }
-export declare enum device {
+declare enum device {
     /** Website with every stream provider */
     PC_HTML5 = "pc_html5",
     /** Old mobile app */
@@ -38,7 +38,7 @@ export declare enum device {
     EXTERNAL = "xExternalWebStations"
 }
 /** Optional configs for RadikoExtractors */
-interface RadikoExtractorOptions {
+export interface RadikoExtractorOptions {
     /**
      * Option to use pip install yt-dlp & yt-dlp-rajiko.
      * If omitted, use yt-dlp.exe
@@ -83,7 +83,6 @@ export declare class RadikoExtractor extends BaseExtractor<RadikoExtractorOption
     private activeStream;
     constructor(context: ExtractorExecutionContext, options?: RadikoExtractorOptions);
     private buildArgs;
-    private buildTracksFromYtDlp;
     createBridgeQuery: (track: Track) => string;
     activate(): Promise<void>;
     deactivate(): Promise<void>;

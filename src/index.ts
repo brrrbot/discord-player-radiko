@@ -1,9 +1,9 @@
-import { BaseExtractor, ExtractorExecutionContext, ExtractorInfo, ExtractorSearchContext, ExtractorStreamable, GuildQueueHistory, QueryType, SearchQueryType, Track, TrackSource } from "discord-player";
+
+import { BaseExtractor, ExtractorExecutionContext, ExtractorInfo, ExtractorSearchContext, ExtractorStreamable, GuildQueueHistory, QueryType, SearchQueryType, Track } from "discord-player";
 import { Readable } from "node:stream";
 import YTDlpWrap from "yt-dlp-wrap";
-import { execSync } from "node:child_process";
 
-export enum format {
+enum format {
     /** Best audio option available */
     BESTAUDIO = "bestaudio",
     /** AAC in MP4 container, most commonly used */
@@ -20,7 +20,7 @@ export enum format {
     DASH = ".dash"
 }
 
-export enum device {
+enum device {
     /** Website with every stream provider */
     PC_HTML5 = "pc_html5",
     /** Old mobile app */
@@ -44,7 +44,7 @@ export enum device {
 }
 
 /** Optional configs for RadikoExtractors */
-interface RadikoExtractorOptions {
+export interface RadikoExtractorOptions {
     /** 
      * Option to use pip install yt-dlp & yt-dlp-rajiko. 
      * If omitted, use yt-dlp.exe
@@ -108,6 +108,7 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
 
         if (mode === "info") {
             args.push(
+                url,
                 "-J",
                 "-N", "30",
                 "--embed-metadata",
@@ -117,10 +118,8 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
         }
 
         if (mode === "stream") {
-            args.push(
-                "-f", this.options.format ?? format.BESTAUDIO,
-                "-o", '-'
-            )
+            args.push("-f", this.options.format ?? format.BESTAUDIO);
+            args.push("-o", "-")
         }
 
         // Add user options if provided
@@ -132,57 +131,16 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
         return args;
     }
 
-    private buildTracksFromYtDlp(json: any, requestedBy: ExtractorSearchContext["requestedBy"], url: string): Track[] {
-        const entries = json.entries ?? [json];
-        return entries.map((data: any) => new Track(this.context.player, {
-            title: data.title ?? "Unknown Title",
-            url: url,
-            author: data.uploader ?? "Radiko",
-            duration: data.is_live ? "Currently Live" : (data.duration ?? 0).toString(),
-            thumbnail: data.thumbnail ?? null,
-            requestedBy: typeof requestedBy === "string" ? null : requestedBy,
-            description: data.description ?? "",
-            engine: this.identifier,
-            metadata: {
-                raw: {
-                    title: data.title,
-                    url: data.url,
-                    uploader: data.uploader,
-                    duration: data.duration,
-                    thumbnail: data.thumbnail,
-                    is_live: data.is_live,
-                },
-            },
-        }));
-    }
-
     public createBridgeQuery = (track: Track) =>
         `${track.title} by ${track.author} official audio`;
 
     // This method is called when extractor is loaded into discord-player's registry
     async activate(): Promise<void> {
-        try {
-            const ytdlpBinary = this.options.usePip ? "yt-dlp" : (this.options.ytdlpPath ?? "yt-dlp");
-            this.ytdlp = new YTDlpWrap(ytdlpBinary);
-            execSync(`${ytdlpBinary} --version`, { stdio: "ignore" });
-            try {
-                const output = execSync("pip show yt-dlp-rajiko").toString().trim();
-                if (output) {
-                    console.log("yt-dlp-rajiko is installed");
-                } else {
-                    console.warn("yt-dlp-rajiko is not installed");
-                }
-            } catch {
-                console.warn("yt-dlp-rajiko does not appear to be installed. Some Radiko streams may fail.");
-            }
-            console.log(`Using yt-dlp binary: ${ytdlpBinary}`);
-        } catch (err) {
-            console.error("yt-dlp is not installed or not found in PATH. Please install it.");
-            throw err;
-        }
+        const player = this.context.player;
+        const opts = this.options ?? {};
 
         // Register protocols
-        this.protocols = ["radikoSearchByKeyWords", "radikoSearchByUrl"];
+        this.protocols = ["radiko"];
     }
 
     // This method is called when extractor is remove from discord-player's registry
@@ -202,104 +160,60 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
 
     // This method is called when discord-player wants a search result
     async handle(query: string, context: ExtractorSearchContext): Promise<ExtractorInfo> {
-        console.log("handle() function start")
-        if (!context.protocol) context.protocol = "radikoSearchByUrl";
-
         try {
-            switch (context.protocol) {
-                case "radikoSearchByKeyWords": {
-                    const url = `https://radiko.jp/#!/search/live?key=${encodeURIComponent(query)}&filter=past`;
-                    const args = this.buildArgs(url, "info");
-                    const result = await this.ytdlp.execPromise(args);
-                    console.log("Result: ", result);
-                    const firstJson = result.split("\n")[0];
-                    const item = JSON.parse(firstJson);
-                    const data = item.entries[0];
-                    console.log("Data:", data)
-                    const track: Track = new Track(this.context.player, {
-                        title: data.title ?? "Unknown Title",
-                        url: data.webpage_url ?? url,
-                        author: data.uploader ?? "Radiko",
-                        duration: data.is_live ? "Currently Live" : (data.duration ?? 0).toString(),
-                        thumbnail: data.thumbnail ?? null,
-                        requestedBy: typeof context.requestedBy === "string" ? null : context.requestedBy,
-                        description: data.description ?? "",
-                        engine: this.identifier,
-                        source: "radiko" as TrackSource,
-                        raw: {
-                            source: data.url,
-                            url: data.url
-                        },
-                        metadata: {
-                            raw: {
-                                title: data.title,
-                                url: data.url,
-                                uploader: data.uploader,
-                                duration: data.duration,
-                                thumbnail: data.thumbnail,
-                                is_live: data.is_live,
-                            },
-                        },
-                    });
+            const args = this.buildArgs(query, "info");
+            const result = await this.ytdlp.execPromise(args);
+            const firstJson = result.split("\n")[0];
+            const data = JSON.parse(firstJson);
 
-                    return {
-                        playlist: null,
-                        tracks: [track]
-                    };
-                }
-                case "radikoSearchByUrl": {
-                    const args = this.buildArgs(query, "info");
-                    const result = await this.ytdlp.execPromise(args);
-                    const firstJson = result.split("\n")[0];
-                    const data = JSON.parse(firstJson);
+            const track: Track = new Track(this.context.player, {
+                title: data.title ?? "Unknown Stream",
+                url: data.url ?? query,
+                author: data.uploader ?? "Radiko",
+                duration: data.is_live ? 0 : (data.duration ?? 0).toString(),
+                live: data.is_live ?? true,
+                thumbnail: data.thumbnail ?? null,
+                requestedBy: typeof context.requestedBy === "string" ? null : context.requestedBy,
+                description: data.description ?? "",
+                engine: this.identifier,
+                metadata: {
+                    raw: {
+                        title: data.title,
+                        url: data.url,
+                        uploader: data.uploader,
+                        duration: data.duration,
+                        thumbnail: data.thumbnail,
+                        is_live: data.is_live,
+                    },
+                },
+            });
 
-                    const track: Track = new Track(this.context.player, {
-                        title: data.title ?? "Unknown Stream",
-                        url: data.url ?? query,
-                        author: data.uploader ?? "Radiko",
-                        duration: data.is_live ? 0 : (data.duration ?? 0).toString(),
-                        live: data.is_live ?? true,
-                        thumbnail: data.thumbnail ?? null,
-                        requestedBy: typeof context.requestedBy === "string" ? null : context.requestedBy,
-                        description: data.description ?? "",
-                        engine: this.identifier,
-                        metadata: {
-                            raw: {
-                                title: data.title,
-                                url: data.url,
-                                uploader: data.uploader,
-                                duration: data.duration,
-                                thumbnail: data.thumbnail,
-                                is_live: data.is_live,
-                            },
-                        },
-                    });
+            return {
+                playlist: null,
+                tracks: [track],
+            };
 
-                    return {
-                        playlist: null,
-                        tracks: [track],
-                    };
-                }
-                default:
-                    return { playlist: null, tracks: [] };
+        } catch (error) {
+            console.error("Error retrieving data from Radiko: ", error);
+            return {
+                playlist: null,
+                tracks: [],
             }
-        } catch (error: any) {
-            console.error("Error retrieving data from Radiko:", error?.stderr || error?.message || error);
-            return { playlist: null, tracks: [] };
         }
     }
 
     // This method is called when discord-player wants to stream a track
     async stream(track: Track): Promise<ExtractorStreamable> {
-        console.log("stream() function start")
         const args = this.buildArgs(track.url, "stream");
         const stream = this.ytdlp.execStream(args);
+
         this.activeStream.add(stream);
         stream.on("close", () => this.activeStream.delete(stream));
+
         return {
             stream,
             $fmt: "arbitrary",
-        };
+        }
     }
 
     // This method is called to get tracks for autoplay mode
