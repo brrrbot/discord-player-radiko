@@ -154,7 +154,7 @@ class RadikoExtractor extends discord_player_1.BaseExtractor {
     }
     // This method is called when discord-player wants a search result
     async handle(query, context) {
-        var _a, _b, _c, _d, _e, _f;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o;
         console.log("handle() function start");
         if (!context.protocol)
             context.protocol = "radikoSearchByKeyWords";
@@ -180,7 +180,7 @@ class RadikoExtractor extends discord_player_1.BaseExtractor {
                         engine: this.identifier,
                         source: "radiko",
                         raw: {
-                            source: data.url, // 👈 the .m3u8
+                            source: data.url,
                             url: data.url
                         },
                         metadata: {
@@ -202,9 +202,33 @@ class RadikoExtractor extends discord_player_1.BaseExtractor {
                 case "radikoSearchByUrl": {
                     const args = this.buildArgs(query, "info");
                     const result = await this.ytdlp.execPromise(args);
-                    const json = JSON.parse(result);
-                    const tracks = this.buildTracksFromYtDlp(json, context.requestedBy, query);
-                    return { playlist: null, tracks };
+                    const firstJson = result.split("\n")[0];
+                    const data = JSON.parse(firstJson);
+                    const track = new discord_player_1.Track(this.context.player, {
+                        title: (_g = data.title) !== null && _g !== void 0 ? _g : "Unknown Stream",
+                        url: (_h = data.url) !== null && _h !== void 0 ? _h : query,
+                        author: (_j = data.uploader) !== null && _j !== void 0 ? _j : "Radiko",
+                        duration: data.is_live ? 0 : ((_k = data.duration) !== null && _k !== void 0 ? _k : 0).toString(),
+                        live: (_l = data.is_live) !== null && _l !== void 0 ? _l : true,
+                        thumbnail: (_m = data.thumbnail) !== null && _m !== void 0 ? _m : null,
+                        requestedBy: typeof context.requestedBy === "string" ? null : context.requestedBy,
+                        description: (_o = data.description) !== null && _o !== void 0 ? _o : "",
+                        engine: this.identifier,
+                        metadata: {
+                            raw: {
+                                title: data.title,
+                                url: data.url,
+                                uploader: data.uploader,
+                                duration: data.duration,
+                                thumbnail: data.thumbnail,
+                                is_live: data.is_live,
+                            },
+                        },
+                    });
+                    return {
+                        playlist: null,
+                        tracks: [track],
+                    };
                 }
                 default:
                     return { playlist: null, tracks: [] };

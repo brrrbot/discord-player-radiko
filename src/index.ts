@@ -228,7 +228,7 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
                         engine: this.identifier,
                         source: "radiko" as TrackSource,
                         raw: {
-                            source: data.url,   // 👈 the .m3u8
+                            source: data.url,
                             url: data.url
                         },
                         metadata: {
@@ -251,9 +251,35 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
                 case "radikoSearchByUrl": {
                     const args = this.buildArgs(query, "info");
                     const result = await this.ytdlp.execPromise(args);
-                    const json = JSON.parse(result);
-                    const tracks = this.buildTracksFromYtDlp(json, context.requestedBy, query);
-                    return { playlist: null, tracks };
+                    const firstJson = result.split("\n")[0];
+                    const data = JSON.parse(firstJson);
+
+                    const track: Track = new Track(this.context.player, {
+                        title: data.title ?? "Unknown Stream",
+                        url: data.url ?? query,
+                        author: data.uploader ?? "Radiko",
+                        duration: data.is_live ? 0 : (data.duration ?? 0).toString(),
+                        live: data.is_live ?? true,
+                        thumbnail: data.thumbnail ?? null,
+                        requestedBy: typeof context.requestedBy === "string" ? null : context.requestedBy,
+                        description: data.description ?? "",
+                        engine: this.identifier,
+                        metadata: {
+                            raw: {
+                                title: data.title,
+                                url: data.url,
+                                uploader: data.uploader,
+                                duration: data.duration,
+                                thumbnail: data.thumbnail,
+                                is_live: data.is_live,
+                            },
+                        },
+                    });
+
+                    return {
+                        playlist: null,
+                        tracks: [track],
+                    };
                 }
                 default:
                     return { playlist: null, tracks: [] };
