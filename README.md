@@ -26,7 +26,6 @@ player.extractors.register(RadikoExtractor, {...options});
 
 # Supported Protocols
 radikoSearchByKeyWords – Search by keywords
-radikoSearchByPerson – Search by personality name
 radikoSearchByUrl – Search directly via Radiko URL
 
 Note:
