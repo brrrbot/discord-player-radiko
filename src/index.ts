@@ -118,7 +118,7 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
         }
 
         if (mode === "stream") {
-            args.push("-f", this.options.format ?? format.BESTAUDIO);
+            args.push("-f", this.options.format ?? format.M4A);
             args.push("-o", "-")
         }
 

@@ -65,7 +65,7 @@ class RadikoExtractor extends discord_player_1.BaseExtractor {
             args.push(url, "-J", "-N", "30", "--embed-metadata", "--embed-thumbnail", "-o", "%(title)s %(timestamp+32400>%Y-%m-%d_%H%M)s [%(id)s].%(ext)s");
         }
         if (mode === "stream") {
-            args.push("-f", (_a = this.options.format) !== null && _a !== void 0 ? _a : format.BESTAUDIO);
+            args.push("-f", (_a = this.options.format) !== null && _a !== void 0 ? _a : format.M4A);
             args.push("-o", "-");
         }
         // Add user options if provided
