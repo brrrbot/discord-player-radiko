@@ -123,7 +123,7 @@ class RadikoExtractor extends discord_player_1.BaseExtractor {
             throw err;
         }
         // Register protocols
-        this.protocols = ["radikoSearchByKeyWords", "radikoSearchByPerson", "radikoSearchByUrl"];
+        this.protocols = ["radikoSearchByKeyWords", "radikoSearchByUrl"];
     }
     // This method is called when extractor is remove from discord-player's registry
     async deactivate() {
@@ -153,24 +153,7 @@ class RadikoExtractor extends discord_player_1.BaseExtractor {
                     const pastDate = new Date(today);
                     pastDate.setDate(today.getDate() - 30);
                     const start_day = pastDate.toISOString().slice(0, 10);
-                    const url = `https://radiko.jp/#!/search/live?key=${encodeURIComponent(query)}&start_day=${start_day}`;
-                    const args = this.buildArgs(url, "info");
-                    const result = await this.ytdlp.execPromise(args);
-                    const playlistJsonLine = result
-                        .split("\n")
-                        .find(line => line.includes('"_type": "playlist"'));
-                    if (!playlistJsonLine)
-                        return { playlist: null, tracks: [] };
-                    const data = JSON.parse(playlistJsonLine);
-                    const tracks = this.buildTracksFromYtDlp(data, context.requestedBy);
-                    return { playlist: null, tracks };
-                }
-                case "radikoSearchSakuna": {
-                    const today = new Date();
-                    const pastDate = new Date(today);
-                    pastDate.setDate(today.getDate() - 30);
-                    const start_day = pastDate.toISOString().slice(0, 10);
-                    const url = `https://radiko.jp/#!/search/live?key=結城さくな&start_day=${start_day}&area_id=JP13`;
+                    const url = `https://radiko.jp/#!/search/live?key=${encodeURIComponent(query)}`;
                     const args = this.buildArgs(url, "info");
                     const result = await this.ytdlp.execPromise(args);
                     const playlistJsonLine = result
