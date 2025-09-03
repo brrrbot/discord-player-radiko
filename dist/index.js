@@ -63,7 +63,7 @@ class RadikoExtractor extends discord_player_1.BaseExtractor {
         var _a, _b, _c, _d, _e;
         const args = [url];
         if (mode === "info") {
-            args.push("-J", "-N", "30", "--embed-metadata", "--embed-thumbnail", "--skip-download", "-o", '"%(title)s %(timestamp+32400>%Y-%m-%d_%H%M)s [%(id)s].%(ext)s"');
+            args.push("-J", "-N", "30", "--embed-metadata", "--embed-thumbnail", "-o", '"%(title)s %(timestamp+32400>%Y-%m-%d_%H%M)s [%(id)s].%(ext)s"');
         }
         if (mode === "stream") {
             args.push("-f", (_a = this.options.format) !== null && _a !== void 0 ? _a : format.BESTAUDIO);
@@ -150,14 +150,13 @@ class RadikoExtractor extends discord_player_1.BaseExtractor {
         try {
             switch (context.protocol) {
                 case "radikoSearchByKeyWords": {
-                    const url = `https://radiko.jp/#!/search/live?key=${encodeURIComponent(query)}`;
+                    const url = `https://radiko.jp/#!/search/live?key=${encodeURIComponent(query)}&filter=past`;
                     const args = this.buildArgs(url, "info");
                     let result;
                     try {
                         result = await this.ytdlp.execPromise(args);
                     }
                     catch (error) {
-                        // If yt-dlp threw "Programme has not aired yet", still grab stdout
                         if (((_a = error.stderr) === null || _a === void 0 ? void 0 : _a.includes("Programme has not aired yet")) || ((_b = error.message) === null || _b === void 0 ? void 0 : _b.includes("Programme has not aired yet"))) {
                             result = error.stdout || "";
                         }

@@ -112,7 +112,6 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
                 "-N", "30",
                 "--embed-metadata",
                 "--embed-thumbnail",
-                "--skip-download",
                 "-o", '"%(title)s %(timestamp+32400>%Y-%m-%d_%H%M)s [%(id)s].%(ext)s"',
             );
         }
@@ -196,14 +195,13 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
         try {
             switch (context.protocol) {
                 case "radikoSearchByKeyWords": {
-                    const url = `https://radiko.jp/#!/search/live?key=${encodeURIComponent(query)}`;
+                    const url = `https://radiko.jp/#!/search/live?key=${encodeURIComponent(query)}&filter=past`;
                     const args = this.buildArgs(url, "info");
 
                     let result: string;
                     try {
                         result = await this.ytdlp.execPromise(args);
                     } catch (error: any) {
-                        // If yt-dlp threw "Programme has not aired yet", still grab stdout
                         if (error.stderr?.includes("Programme has not aired yet") || error.message?.includes("Programme has not aired yet")) {
                             result = error.stdout || "";
                         } else {
