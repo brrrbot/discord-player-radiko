@@ -112,12 +112,9 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
                 "-N", "30",
                 "--embed-metadata",
                 "--embed-thumbnail",
+                "-f", this.options.format ?? format.BESTAUDIO,
+                "-o", '"%(title)s %(timestamp+32400>%Y-%m-%d_%H%M)s [%(id)s].%(ext)s"',
             );
-        }
-
-        if (mode === "stream") {
-            args.push("-f", this.options.format ?? format.BESTAUDIO);
-            args.push("-o", '"%(title)s %(timestamp+32400>%Y-%m-%d_%H%M)s [%(id)s].%(ext)s"');
         }
 
         // Add user options if provided
@@ -229,16 +226,15 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
 
     // This method is called when discord-player wants to stream a track
     async stream(track: Track): Promise<ExtractorStreamable> {
-        const args = this.buildArgs(track.url, "stream");
-        const stream = this.ytdlp.execStream(args);
+        // const args = this.buildArgs(track.url, "stream");
+        // const stream = this.ytdlp.execStream(args);
 
-        this.activeStream.add(stream);
-        stream.on("close", () => this.activeStream.delete(stream));
-
+        // this.activeStream.add(stream);
+        // stream.on("close", () => this.activeStream.delete(stream));
         return {
-            stream,
+            stream: track.url as unknown as Readable,
             $fmt: "arbitrary",
-        }
+        };
     }
 
     // This method is called to get tracks for autoplay mode
