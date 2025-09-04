@@ -141,6 +141,7 @@ class RadikoExtractor extends discord_player_1.BaseExtractor {
                 const firstJson = result.split("\n")[0];
                 const data = JSON.parse(firstJson);
                 const track = new discord_player_1.Track(this.context.player, {
+                    source: this.identifier,
                     title: (_a = data.title) !== null && _a !== void 0 ? _a : "Unknown Stream",
                     url: query,
                     author: (_b = data.uploader) !== null && _b !== void 0 ? _b : "Radiko",
@@ -149,17 +150,6 @@ class RadikoExtractor extends discord_player_1.BaseExtractor {
                     thumbnail: (_e = data.thumbnail) !== null && _e !== void 0 ? _e : null,
                     requestedBy: typeof context.requestedBy === "string" ? null : context.requestedBy,
                     description: (_f = data.description) !== null && _f !== void 0 ? _f : "",
-                    engine: this.identifier,
-                    metadata: {
-                        raw: {
-                            title: data.title,
-                            url: data.url,
-                            uploader: data.uploader,
-                            duration: data.duration,
-                            thumbnail: data.thumbnail,
-                            is_live: data.is_live,
-                        },
-                    },
                 });
                 return {
                     playlist: null,
@@ -170,9 +160,10 @@ class RadikoExtractor extends discord_player_1.BaseExtractor {
                 const url = `https://radiko.jp/#!/search/live?key=${query}&filter=past`;
                 const args = this.buildArgs(url, "info");
                 const result = await this.ytdlp.execPromise(args);
-                const resultJson = JSON.parse(result);
+                const resultJson = JSON.parse(result.split("\n")[0]);
                 const data = resultJson.entries[0];
                 const track = new discord_player_1.Track(this.context.player, {
+                    source: this.identifier,
                     title: (_g = data.title) !== null && _g !== void 0 ? _g : "Unknown Stream",
                     url: data.original_url,
                     author: (_h = data.uploader) !== null && _h !== void 0 ? _h : "Radiko",
@@ -181,17 +172,6 @@ class RadikoExtractor extends discord_player_1.BaseExtractor {
                     thumbnail: (_l = data.thumbnail) !== null && _l !== void 0 ? _l : null,
                     requestedBy: typeof context.requestedBy === "string" ? null : context.requestedBy,
                     description: (_m = data.description) !== null && _m !== void 0 ? _m : "",
-                    engine: this.identifier,
-                    metadata: {
-                        raw: {
-                            title: data.title,
-                            url: data.url,
-                            uploader: data.uploader,
-                            duration: data.duration,
-                            thumbnail: data.thumbnail,
-                            is_live: data.is_live,
-                        },
-                    },
                 });
                 return {
                     playlist: null,

@@ -1,4 +1,4 @@
-import { BaseExtractor, ExtractorExecutionContext, ExtractorInfo, ExtractorSearchContext, ExtractorStreamable, GuildQueueHistory, QueryType, SearchQueryType, Track } from "discord-player";
+import { BaseExtractor, ExtractorExecutionContext, ExtractorInfo, ExtractorSearchContext, ExtractorStreamable, GuildQueueHistory, QueryType, SearchQueryType, Track, TrackSource } from "discord-player";
 import { execSync } from "node:child_process";
 import { Readable } from "node:stream";
 import YTDlpWrap from "yt-dlp-wrap";
@@ -194,6 +194,7 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
                 const data = JSON.parse(firstJson);
 
                 const track: Track = new Track(this.context.player, {
+                    source: this.identifier as TrackSource,
                     title: data.title ?? "Unknown Stream",
                     url: query,
                     author: data.uploader ?? "Radiko",
@@ -202,17 +203,6 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
                     thumbnail: data.thumbnail ?? null,
                     requestedBy: typeof context.requestedBy === "string" ? null : context.requestedBy,
                     description: data.description ?? "",
-                    engine: this.identifier,
-                    metadata: {
-                        raw: {
-                            title: data.title,
-                            url: data.url,
-                            uploader: data.uploader,
-                            duration: data.duration,
-                            thumbnail: data.thumbnail,
-                            is_live: data.is_live,
-                        },
-                    },
                 });
                 return {
                     playlist: null,
@@ -222,10 +212,11 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
                 const url = `https://radiko.jp/#!/search/live?key=${query}&filter=past`;
                 const args = this.buildArgs(url, "info");
                 const result = await this.ytdlp.execPromise(args);
-                const resultJson = JSON.parse(result);
+                const resultJson = JSON.parse(result.split("\n")[0]);
                 const data = resultJson.entries[0];
 
                 const track: Track = new Track(this.context.player, {
+                    source: this.identifier as TrackSource,
                     title: data.title ?? "Unknown Stream",
                     url: data.original_url,
                     author: data.uploader ?? "Radiko",
@@ -234,17 +225,6 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
                     thumbnail: data.thumbnail ?? null,
                     requestedBy: typeof context.requestedBy === "string" ? null : context.requestedBy,
                     description: data.description ?? "",
-                    engine: this.identifier,
-                    metadata: {
-                        raw: {
-                            title: data.title,
-                            url: data.url,
-                            uploader: data.uploader,
-                            duration: data.duration,
-                            thumbnail: data.thumbnail,
-                            is_live: data.is_live,
-                        },
-                    },
                 });
                 return {
                     playlist: null,
