@@ -65,7 +65,7 @@ class RadikoExtractor extends discord_player_1.BaseExtractor {
             args.push(url, "-J", "-N", "30", "--embed-metadata", "--embed-thumbnail", "-o", "%(title)s %(timestamp+32400>%Y-%m-%d_%H%M)s [%(id)s].%(ext)s");
         }
         if (mode === "stream") {
-            args.push("-f", (_a = this.options.format) !== null && _a !== void 0 ? _a : format.M4A);
+            args.push("-f", (_a = this.options.format) !== null && _a !== void 0 ? _a : format.BESTAUDIO);
             args.push("-o", "-");
         }
         // Add user options if provided
@@ -81,9 +81,6 @@ class RadikoExtractor extends discord_player_1.BaseExtractor {
     }
     // This method is called when extractor is loaded into discord-player's registry
     async activate() {
-        var _a;
-        const player = this.context.player;
-        const opts = (_a = this.options) !== null && _a !== void 0 ? _a : {};
         // Register protocols
         this.protocols = ["radiko"];
     }
@@ -149,6 +146,7 @@ class RadikoExtractor extends discord_player_1.BaseExtractor {
     // This method is called when discord-player wants to stream a track
     async stream(track) {
         const args = this.buildArgs(track.url, "stream");
+        console.log("args: ", args);
         const stream = this.ytdlp.execStream(args);
         this.activeStream.add(stream);
         stream.on("close", () => this.activeStream.delete(stream));
