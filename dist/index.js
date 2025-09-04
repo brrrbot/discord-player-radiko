@@ -105,21 +105,22 @@ class RadikoExtractor extends discord_player_1.BaseExtractor {
     }
     // This method is called when discord-player wants a search result
     async handle(query, context) {
-        var _a, _b, _c, _d, _e, _f, _g;
+        var _a, _b, _c, _d, _e, _f;
         try {
             const args = this.buildArgs(query, "info");
             const result = await this.ytdlp.execPromise(args);
             const firstJson = result.split("\n")[0];
             const data = JSON.parse(firstJson);
+            console.log("Data: ", data);
             const track = new discord_player_1.Track(this.context.player, {
                 title: (_a = data.title) !== null && _a !== void 0 ? _a : "Unknown Stream",
-                url: (_b = data.url) !== null && _b !== void 0 ? _b : query,
-                author: (_c = data.uploader) !== null && _c !== void 0 ? _c : "Radiko",
-                duration: data.is_live ? 0 : ((_d = data.duration) !== null && _d !== void 0 ? _d : 0).toString(),
-                live: (_e = data.is_live) !== null && _e !== void 0 ? _e : true,
-                thumbnail: (_f = data.thumbnail) !== null && _f !== void 0 ? _f : null,
+                url: query,
+                author: (_b = data.uploader) !== null && _b !== void 0 ? _b : "Radiko",
+                duration: data.is_live ? 0 : ((_c = data.duration) !== null && _c !== void 0 ? _c : 0).toString(),
+                live: (_d = data.is_live) !== null && _d !== void 0 ? _d : true,
+                thumbnail: (_e = data.thumbnail) !== null && _e !== void 0 ? _e : null,
                 requestedBy: typeof context.requestedBy === "string" ? null : context.requestedBy,
-                description: (_g = data.description) !== null && _g !== void 0 ? _g : "",
+                description: (_f = data.description) !== null && _f !== void 0 ? _f : "",
                 engine: this.identifier,
                 metadata: {
                     raw: {

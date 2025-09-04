@@ -165,10 +165,11 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
             const result = await this.ytdlp.execPromise(args);
             const firstJson = result.split("\n")[0];
             const data = JSON.parse(firstJson);
+            console.log("Data: ",data);
 
             const track: Track = new Track(this.context.player, {
                 title: data.title ?? "Unknown Stream",
-                url: data.url ?? query,
+                url: query,
                 author: data.uploader ?? "Radiko",
                 duration: data.is_live ? 0 : (data.duration ?? 0).toString(),
                 live: data.is_live ?? true,
