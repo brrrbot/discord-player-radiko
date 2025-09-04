@@ -1,5 +1,5 @@
 import { BaseExtractor, ExtractorExecutionContext, ExtractorInfo, ExtractorSearchContext, ExtractorStreamable, GuildQueueHistory, SearchQueryType, Track } from "discord-player";
-declare enum format {
+export declare enum format {
     /** Best audio option available */
     BESTAUDIO = "bestaudio",
     /** AAC in MP4 container, most commonly used */
@@ -15,7 +15,7 @@ declare enum format {
     /** MPEG-DASH manifest with seperate audio/video tracks */
     DASH = ".dash"
 }
-declare enum device {
+export declare enum device {
     /** Website with every stream provider */
     PC_HTML5 = "pc_html5",
     /** Old mobile app */
@@ -78,7 +78,6 @@ export interface RadikoExtractorOptions {
 export declare class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
     static identifier: string;
     private ytdlp;
-    /** Precomputed args shared by handle() & stream() */
     /** Reference to live streams to destroy on deactivate() */
     private activeStream;
     constructor(context: ExtractorExecutionContext, options?: RadikoExtractorOptions);
@@ -91,4 +90,3 @@ export declare class RadikoExtractor extends BaseExtractor<RadikoExtractorOption
     stream(track: Track): Promise<ExtractorStreamable>;
     getRelatedTracks(track: Track, history: GuildQueueHistory): Promise<ExtractorInfo>;
 }
-export {};
