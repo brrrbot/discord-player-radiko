@@ -1,0 +1,27 @@
+{
+  "name": "discord-player-radiko",
+  "version": "1.5.1",
+  "description": "Extractor plugin for discord player to fetch Radiko streams.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc",
+    "prepublishOnly": "npm run build"
+  },
+  "keywords": [],
+  "author": "brrrbot",
+  "license": "Apache-2.0",
+  "type": "commonjs",
+  "peerDependencies": {
+    "discord-player": "^7.1.0",
+    "yt-dlp-wrap": "^2.3.12",
+    "axios": "^1.11.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.3.0",
+    "discord.js": "^14.22.1",
+    "eris": "^0.18.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2"
+  }
+}
