@@ -104,7 +104,7 @@ class RadikoExtractor extends discord_player_1.BaseExtractor {
             throw err;
         }
         // Register protocols
-        this.protocols = ["radiko"];
+        this.protocols = ["radiko", "radiko_live"];
     }
     // This method is called when extractor is remove from discord-player's registry
     async deactivate() {
@@ -132,8 +132,36 @@ class RadikoExtractor extends discord_player_1.BaseExtractor {
     }
     // This method is called when discord-player wants a search result
     async handle(query, context) {
-        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m;
+        var _a, _b, _c, _d, _e, _f, _g, _h, _j, _k, _l, _m, _o, _p, _q;
+        if (!context.protocol)
+            context.protocol = "radiko";
         const isRadikoUrl = /radiko\.jp/.test(query);
+        if (context.protocol === "radiko_live") {
+            try {
+                const url = `https://radiko.jp/#${query}`;
+                const args = this.buildArgs(url, "info");
+                const result = await this.ytdlp.execPromise(args);
+                const data = JSON.parse(result);
+                const track = new discord_player_1.Track(this.context.player, {
+                    source: this.identifier,
+                    title: (_a = data.title) !== null && _a !== void 0 ? _a : "Unknown Stream",
+                    url: data.original_url,
+                    author: (_b = data.uploader) !== null && _b !== void 0 ? _b : "Radiko",
+                    duration: "Live",
+                    live: (_c = data.is_live) !== null && _c !== void 0 ? _c : true,
+                    thumbnail: (_d = data.thumbnail) !== null && _d !== void 0 ? _d : null,
+                    requestedBy: typeof context.requestedBy === "string" ? null : context.requestedBy,
+                    description: (_e = data.description) !== null && _e !== void 0 ? _e : "",
+                });
+                return {
+                    playlist: null,
+                    tracks: [track],
+                };
+            }
+            catch (error) {
+                console.error("Error while getting Livestream: ", error);
+            }
+        }
         try {
             if (isRadikoUrl) {
                 const args = this.buildArgs(query, "info");
@@ -142,14 +170,14 @@ class RadikoExtractor extends discord_player_1.BaseExtractor {
                 const data = JSON.parse(firstJson);
                 const track = new discord_player_1.Track(this.context.player, {
                     source: this.identifier,
-                    title: (_a = data.title) !== null && _a !== void 0 ? _a : "Unknown Stream",
+                    title: (_f = data.title) !== null && _f !== void 0 ? _f : "Unknown Stream",
                     url: query,
-                    author: (_b = data.uploader) !== null && _b !== void 0 ? _b : "Radiko",
-                    duration: data.is_live ? 0 : ((_c = data.duration) !== null && _c !== void 0 ? _c : 0).toString(),
-                    live: (_d = data.is_live) !== null && _d !== void 0 ? _d : true,
-                    thumbnail: (_e = data.thumbnail) !== null && _e !== void 0 ? _e : null,
+                    author: (_g = data.uploader) !== null && _g !== void 0 ? _g : "Radiko",
+                    duration: data.is_live ? "Live" : `${data.duration / 60} mins`,
+                    live: (_h = data.is_live) !== null && _h !== void 0 ? _h : true,
+                    thumbnail: (_j = data.thumbnail) !== null && _j !== void 0 ? _j : null,
                     requestedBy: typeof context.requestedBy === "string" ? null : context.requestedBy,
-                    description: (_f = data.description) !== null && _f !== void 0 ? _f : "",
+                    description: (_k = data.description) !== null && _k !== void 0 ? _k : "",
                 });
                 return {
                     playlist: null,
@@ -164,14 +192,14 @@ class RadikoExtractor extends discord_player_1.BaseExtractor {
                 const data = resultJson.entries[0];
                 const track = new discord_player_1.Track(this.context.player, {
                     source: this.identifier,
-                    title: (_g = data.title) !== null && _g !== void 0 ? _g : "Unknown Stream",
+                    title: (_l = data.title) !== null && _l !== void 0 ? _l : "Unknown Stream",
                     url: data.original_url,
-                    author: (_h = data.uploader) !== null && _h !== void 0 ? _h : "Radiko",
-                    duration: data.is_live ? 0 : ((_j = data.duration) !== null && _j !== void 0 ? _j : 0).toString(),
-                    live: (_k = data.is_live) !== null && _k !== void 0 ? _k : true,
-                    thumbnail: (_l = data.thumbnail) !== null && _l !== void 0 ? _l : null,
+                    author: (_m = data.uploader) !== null && _m !== void 0 ? _m : "Radiko",
+                    duration: `${data.duration / 60} mins`,
+                    live: (_o = data.is_live) !== null && _o !== void 0 ? _o : true,
+                    thumbnail: (_p = data.thumbnail) !== null && _p !== void 0 ? _p : null,
                     requestedBy: typeof context.requestedBy === "string" ? null : context.requestedBy,
-                    description: (_m = data.description) !== null && _m !== void 0 ? _m : "",
+                    description: (_q = data.description) !== null && _q !== void 0 ? _q : "",
                 });
                 return {
                     playlist: null,

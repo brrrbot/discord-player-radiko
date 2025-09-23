@@ -155,7 +155,7 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
         }
 
         // Register protocols
-        this.protocols = ["radiko"];
+        this.protocols = ["radiko", "radiko_live"];
     }
 
     // This method is called when extractor is remove from discord-player's registry
@@ -184,7 +184,35 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
 
     // This method is called when discord-player wants a search result
     async handle(query: string, context: ExtractorSearchContext): Promise<ExtractorInfo> {
+        if (!context.protocol) context.protocol = "radiko";
         const isRadikoUrl = /radiko\.jp/.test(query);
+
+        if (context.protocol === "radiko_live") {
+            try {
+                const url = `https://radiko.jp/#${query}`;
+                const args = this.buildArgs(url, "info");
+                const result = await this.ytdlp.execPromise(args);
+                const data = JSON.parse(result);
+
+                const track: Track = new Track(this.context.player, {
+                    source: this.identifier as TrackSource,
+                    title: data.title ?? "Unknown Stream",
+                    url: data.original_url,
+                    author: data.uploader ?? "Radiko",
+                    duration: "Live",
+                    live: data.is_live ?? true,
+                    thumbnail: data.thumbnail ?? null,
+                    requestedBy: typeof context.requestedBy === "string" ? null : context.requestedBy,
+                    description: data.description ?? "",
+                });
+                return {
+                    playlist: null,
+                    tracks: [track],
+                };
+            } catch (error) {
+                console.error("Error while getting Livestream: ", error);
+            }
+        }
 
         try {
             if (isRadikoUrl) {
@@ -198,7 +226,7 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
                     title: data.title ?? "Unknown Stream",
                     url: query,
                     author: data.uploader ?? "Radiko",
-                    duration: data.is_live ? 0 : (data.duration ?? 0).toString(),
+                    duration: data.is_live ? "Live" : `${data.duration / 60} mins`,
                     live: data.is_live ?? true,
                     thumbnail: data.thumbnail ?? null,
                     requestedBy: typeof context.requestedBy === "string" ? null : context.requestedBy,
@@ -220,7 +248,7 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
                     title: data.title ?? "Unknown Stream",
                     url: data.original_url,
                     author: data.uploader ?? "Radiko",
-                    duration: data.is_live ? 0 : (data.duration ?? 0).toString(),
+                    duration: `${data.duration / 60} mins`,
                     live: data.is_live ?? true,
                     thumbnail: data.thumbnail ?? null,
                     requestedBy: typeof context.requestedBy === "string" ? null : context.requestedBy,
