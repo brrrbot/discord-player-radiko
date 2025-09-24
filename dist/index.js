@@ -159,7 +159,11 @@ class RadikoExtractor extends discord_player_1.BaseExtractor {
                 };
             }
             catch (error) {
-                console.error("Error while getting Livestream: ", error);
+                console.error("Error retrieving data from Radiko: ", error);
+                return {
+                    playlist: null,
+                    tracks: [],
+                };
             }
         }
         try {

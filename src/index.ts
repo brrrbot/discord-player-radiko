@@ -210,7 +210,11 @@ export class RadikoExtractor extends BaseExtractor<RadikoExtractorOptions> {
                     tracks: [track],
                 };
             } catch (error) {
-                console.error("Error while getting Livestream: ", error);
+                console.error("Error retrieving data from Radiko: ", error);
+                return {
+                    playlist: null,
+                    tracks: [],
+                }
             }
         }
 
