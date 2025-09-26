@@ -13,9 +13,9 @@
   "license": "Apache-2.0",
   "type": "commonjs",
   "peerDependencies": {
+    "axios": "^1.11.0",
     "discord-player": "^7.1.0",
-    "yt-dlp-wrap": "^2.3.12",
-    "axios": "^1.11.0"
+    "yt-dlp-wrap": "^2.3.12"
   },
   "devDependencies": {
     "@types/node": "^24.3.0",
