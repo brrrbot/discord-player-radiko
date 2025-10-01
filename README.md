@@ -24,10 +24,6 @@ player.extractors.register(RadikoExtractor, {...options});
 | `no_stream_blacklist` | `boolean` | false           | Enable streams that may not work with ffmpeg        |
 | `no_as_live_chunks`   | `boolean` | false           | Download streams while playing (slower)             |
 
-# Supported Protocols
-radikoSearchByKeyWords – Search by keywords
-radikoSearchByUrl – Search directly via Radiko URL
-
 Note:
 please ensure that you have yt-dlp and yt-dlp-rajiko installed
 ```
